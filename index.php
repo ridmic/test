@@ -10,7 +10,7 @@
 
             
             $xObj = new xObject();
-            $xObj->debug( "Hello Emily 1" );
+            $xObj->debug( "Hello Emily 3" );
         ?>
     </body>
 </html>
