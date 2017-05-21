@@ -19,7 +19,7 @@ $xObj = new Core\Object();
 $xObj->debug( "Hello" );
 
 $x = new Test();
-$x->foo("aaa", 1, true, array('a' => 1,'b' => 2,'c' => 3), $x );
+$x->foo("aaa", 1, true, array('a' => 1,'b' => 2,'c' => 4), $x );
   
 include "footer.php";
 ?>
