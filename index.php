@@ -1,16 +1,25 @@
-<html>
-    <head>
-        
-    </head>
-    <body>
-        <h1>Test Site</h1>
-        <?php
-            include "core/object.php";
-            xobject::defDebugLevel(1);
+<?php
+include "header.php";
+include "core/object.php";
 
-            
-            $xObj = new xObject();
-            $xObj->debug( "Hello Emily 5" );
-        ?>
-    </body>
-</html>
+use Ridmic\Core as Core;
+
+class Test extends Core\Object
+{
+  function foo($a, $b, $c, $d, $e )
+  {  
+    $this->traceFunction();
+  }
+}
+
+Core\Object::defDebugLevel( Core\Object::DBG_TRACE );
+Core\Object::defShowClass( false );
+
+$xObj = new Core\Object();
+$xObj->debug( "Hello" );
+
+$x = new Test();
+$x->foo("aaa", 1, true, array('a' => 1,'b' => 2,'c' => 3), $x );
+  
+include "footer.php";
+?>
