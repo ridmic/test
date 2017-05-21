@@ -14,6 +14,7 @@ class Object
     {
       $this->traceFunction();
     }
+    
     function __destruct()
     {
       $this->traceFunction();
