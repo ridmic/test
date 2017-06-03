@@ -1,48 +1,48 @@
 <?php
 include "header.php";
 include "core/object.php";
+include "core/router.php";
+include "core/dispatcher.php";
 
 use Ridmic\Core as Core;
 
-class Test extends Core\Object
-{
-  function foo($a, $b, $c, $d, $e )
-  {  
-    $this->traceEnterFunc();
-    
-    $this->traceLeaveFunc();
-  }
-  
-  function add1($a, $b )
-  {
-    $this->traceEnterFunc();
+Core\Object::defDebugLevel( Core\Object::DBG_TRACE );
+Core\Object::defShowDateTime( false );
 
-    return $this->traceLeaveFunc( (int)$a * (int)$b );
-  }
-  function add2($a, $b )
-  {
-    $this->traceEnterFunc();
-    
-    $this->debug( "some text" );
-    $this->debug( sprintf("some text: %s or %d", 'ddd', 345 ) );
-    
-    // Do something
-    
-    return $this->traceLeaveFunc( (int)$a * (int)$b );
-  }
+function test( $id = 0)
+{
+  echo "Called: test($id)!";
 }
 
-Core\Object::defDebugLevel( Core\Object::DBG_TRACE );
-Core\Object::defShowDateTime( true );
+class myTest
+{
+  public function test( $id=0)
+  {
+     echo "Called: myTest@test($id)!";
+  }
+  public function testUser( $id=0, $v=null )
+  {
+     echo "Called: myTest@testUser($id, $v)!";
+  }
+}
+  
+  
+$router = new Core\Router();
 
-$xObj = new Core\Object();
-$xObj->debug( "Hello" );
+// Set some routes
+$router->get( 'user1/{:id}', 'test' );
+$router->get( 'user2/{:id}', 'myTest@test' );
+$router->get( 'user2/{:id}/does/{:id}', 'myTest@testUser' );
 
-$x = new Test();
-$x->foo("aaa", 1, true, array('a' => 1,'b' => 2,'c' => 3), $xObj );
+$response = $router->match( 'get', 'user1/111' );
+$response->dispatch();
 
-$x->add1( 3, 8 );
-$x->add2( 3, 8 );
+$response = $router->match( 'get', 'user2/222' );
+$response->dispatch();
+
+$response = $router->match( 'get', 'user2/222/does/44' );
+$response->dispatch();
+
 
 include "footer.php";
 ?>
