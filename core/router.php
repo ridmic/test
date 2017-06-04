@@ -87,7 +87,10 @@ class Router extends Object {
         $this->traceEnterFunc();
 
         $this->routes[$method][$pattern] = [$name => $handler];
-        $this->debug( "Routing: $method:$pattern to '$name' => '$handler'" );
+        if ( is_array($handler) )
+          $this->debug( "Routing: %s:%s to '%s' => '%s@%s'", $method, $pattern, $name, "".$handler[0], "".$handler[1] );
+        else
+          $this->debug( "Routing: %s:%s to '%s' => '%s'", $method, $pattern, $name, $handler );
         if ( is_string($name) && $name != '' )
         {
             // Check for a regex type path
@@ -100,62 +103,19 @@ class Router extends Object {
         }
         $this->traceLeaveFunc();
     }
-/*
-    public function match( Request $request )
-    {
-        $method = strtolower($request->getMethod());
-        if (!isset($this->routes[$method])) 
-        {
-            return new ResponseNotFound();
-        }
 
-        $path    = $request->getPath();
-        $methods = array( $method, 'any' );
-        foreach ( $methods as $method )
-        {
-            foreach ($this->routes[$method] as $pattern => $handler) 
-            {
-                $args   = []; 
-                $class  = null;
-                list($name, $meth) = each($handler); 
-
-                // Check for a regex type path
-                if ( preg_match(self::REGVAL, $pattern) )
-                {
-                    list($args, $uri, $pattern) = $this->parseRegexRoute($path, $pattern); 
-                    var_dump($args);
-                    var_dump($uri);
-                    var_dump($pattern);
-                }
-    
-                // Do we have a match?
-                if ( !preg_match(($this->exactMatch ? "#^$pattern$#" : "#^$pattern#"), $path) )
-                    continue ;
-
-                // Check for class@method type path
-                if ( is_string($meth) && strpos($meth, '@'))
-                {
-                    list($class, $meth) = explode('@', $meth); 
-                }
-                return new Response( ['class' => $class, 'method' => $meth, 'args' => $this->cleanInputs($args)], 200 );
-            }
-        }
-        return new ResponseNotFound();
-    }
- */
-    
     public function match( $m, $request )
     {
         $this->traceEnterFunc();
         
-        $retVal  = new Dispatcher();
+        $retVal  = [];
         $methods = array( $m, 'any' );
-        $this->debug("Matching: $method:$request");
+        $this->debug("Matching: %s:%s", $method, $request);
         foreach ( $methods as $method )
         {
             foreach ($this->routes[$method] as $pattern => $handler) 
             {
-                $this->debug("Against: $method:$pattern");
+                $this->debug("Against: %s:%s", $method, $pattern );
                 $args   = []; 
                 $class  = null;
                 list($name, $meth) = each($handler); 
@@ -164,7 +124,7 @@ class Router extends Object {
                 if ( preg_match(self::REGVAL, $pattern) )
                 {
                     list($args, $uri, $pattern) = $this->parseRegexRoute($request, $pattern); 
-                    $this->debug("Expanding to: $method:$pattern");
+                    $this->debug("Expanding to: %s:%s", $method, $pattern );
                 }
     
                 // Do we have a match?
@@ -178,7 +138,15 @@ class Router extends Object {
                 {
                     list($class, $meth) = explode('@', $meth); 
                 }
-                $retVal = new Dispatcher($class, $meth, $this->cleanInputs($args) );
+                // Check for object
+                if ( is_array($meth) && is_object($meth[0]) )
+                {
+                    $class = $meth[0];
+                    $meth  = $meth[1]; 
+                }
+                $retVal = ["class" => $class, "method" => $meth, "args" => $this->cleanInputs($args) ];
+                $this->traceLeaveFunc( $retVal );
+                return $retVal;
             }
         }
         $this->traceLeaveFunc( $retVal );

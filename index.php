@@ -1,48 +1,56 @@
 <?php
 include "header.php";
 include "core/object.php";
+include "core/request.php";
 include "core/router.php";
 include "core/dispatcher.php";
 
+include "core/controller.php";
+
 use Ridmic\Core as Core;
 
-Core\Object::defDebugLevel( Core\Object::DBG_TRACE );
+Core\Object::defDebugLevel( Core\Object::DBG_DEBUG );
 Core\Object::defShowDateTime( false );
 
-function test( $id = 0)
+class myController extends Core\Controller
 {
-  echo "Called: test($id)!";
-}
-
-class myTest
-{
+    function __construct( Core\Router $router )
+    {
+      $this->routes = [ 'get' => [ 'user2/{:id}'               => [$this, 'test'],
+                                   'user2/{:id}/does/{:id}'    => [$this, 'testUser'] ] ];
+      parent::__construct( $router );
+      
+    }
+    
   public function test( $id=0)
   {
-     echo "Called: myTest@test($id)!";
-  }
+     $this->write( "---> Called: myController@test($id)!" );
+  } 
   public function testUser( $id=0, $v=null )
   {
-     echo "Called: myTest@testUser($id, $v)!";
+     $this->write("---> Called: myController@testUser($id, $v)!");
   }
 }
   
-  
-$router = new Core\Router();
 
-// Set some routes
-$router->get( 'user1/{:id}', 'test' );
-$router->get( 'user2/{:id}', 'myTest@test' );
-$router->get( 'user2/{:id}/does/{:id}', 'myTest@testUser' );
+$request    = new Core\Request();
+$router     = new Core\Router();
+$dispatcher = new Core\Dispatcher();
 
-$response = $router->match( 'get', 'user1/111' );
-$response->dispatch();
+$myController = new myController( $router );
 
-$response = $router->match( 'get', 'user2/222' );
-$response->dispatch();
 
-$response = $router->match( 'get', 'user2/222/does/44' );
-$response->dispatch();
+$testRoutes = [ 'ddd', 'user1/111', 'user2/222', 'user2/333/does/444' ];   
+$request->setMethod( 'get' );
+foreach ( $testRoutes as $path )  
+{
+  // Get a request
+  $request->setpath( $path );
 
+  // Try and dispatch it
+  if ( $dispatcher->setResponse( $router->match( $request->getMethod(), $request->getPath() ) ) )
+    $dispatcher->dispatch();
+}
 
 include "footer.php";
 ?>
