@@ -10,12 +10,16 @@ class Test extends Core\Object
   {  
     $this->traceEnterFunc();
     
+    $this->debug( "some text" );
+
     $this->traceLeaveFunc();
   }
   
   function add1($a, $b )
   {
     $this->traceEnterFunc();
+
+    $this->debug( "some text" );
 
     return $this->traceLeaveFunc( (int)$a * (int)$b );
   }
@@ -33,7 +37,7 @@ class Test extends Core\Object
 }
 
 Core\Object::defDebugLevel( Core\Object::DBG_TRACE );
-Core\Object::defShowDateTime( true );
+Core\Object::defShowDateTime( false );
 
 $xObj = new Core\Object();
 $xObj->debug( "Hello" );

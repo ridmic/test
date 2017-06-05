@@ -13,16 +13,10 @@ class Object
     
     function __construct()
     {
-      $this->traceEnterFunc();
-      
-      $this->traceLeaveFunc();
     }
     
     function __destruct()
     {
-      $this->traceEnterFunc();
-      
-      $this->traceLeaveFunc();
     }
     
     static function defDebugLevel( $level )
@@ -35,7 +29,7 @@ class Object
     }
     
     public function write( $msg ) { $this->_write($msg, self::DBG_ALWAYS); }
-    public function debug( $msg ) { $this->_write($msg, self::DBG_DEBUG); }
+   // public function debug( $msg ) { $this->_write($msg, self::DBG_DEBUG); }
     public function trace( $msg ) { $this->_write($msg, self::DBG_TRACE); }
     public function _write( $msg, $level=1 )
     {
@@ -51,6 +45,23 @@ class Object
       }
     } 
     
+    public function debug( $msg )
+    {
+      if ( self::$defLevel == self::DBG_TRACE )
+      {
+        $b = debug_backtrace(false,1);
+        $f = count($b) >= 2 ? $b[0]['function'] : '-unknown-';
+        $v = count($b) >= 2 ? $b[0]["args"] : array();
+
+        $file   = count($b) >= 1 ? basename($b[0]['file']) : '-unknown-';
+        $line   = count($b) >= 1 ? $b[0]['line'] : '-unknown-';
+        $detail = "{ $file @ $line }";
+          
+        array_walk( $v, function(&$value, $key) { $value = print_r($value, true); } );
+        $this->trace( "$msg : $detail " );
+      }
+    }
+
     public function traceEnterFunc()
     {
       if ( self::$defLevel == self::DBG_TRACE )
@@ -58,9 +69,13 @@ class Object
         $b = debug_backtrace(false,2);
         $f = count($b) >= 2 ? $b[1]['function'] : '-unknown-';
         $v = count($b) >= 2 ? $b[1]["args"] : array();
+
+        $file   = count($b) >= 2 ? basename($b[1]['file']) : '-unknown-';
+        $line   = count($b) >= 2 ? $b[1]['line'] : '-unknown-';
+        $detail = "{ $file @ $line }";
           
         array_walk( $v, function(&$value, $key) { $value = print_r($value, true); } );
-        $this->trace( "ENTER: ".get_class($this)."::$f(".implode(', ', $v).")" );
+        $this->trace( "FUNC >>: ".get_class($this)."::$f(".implode(', ', $v).") : $detail" );
 
         self::$curIndent += 2;
       }
@@ -76,8 +91,12 @@ class Object
         $f = count($b) >= 2 ? $b[1]['function'] : '-unknown-';
         $v = count($b) >= 2 ? $b[1]["args"] : array();
           
+        $file   = count($b) >= 2 ? basename($b[1]['file']) : '-unknown-';
+        $line   = count($b) >= 2 ? $b[1]['line'] : '-unknown-';
+        $detail = "{ $file @ $line }";
+          
         array_walk( $v, function(&$value, $key) { $value = print_r($value, true); } );
-        $this->trace( "LEAVE: ".get_class($this)."::$f(".implode(', ', $v).") => retval(".print_r($vv, true).")" );
+        $this->trace( "FUNC <<: ".get_class($this)."::$f(".implode(', ', $v).") => retval(".print_r($vv, true).") : $detail" );
       }
     }
 
