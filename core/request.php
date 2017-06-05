@@ -1,6 +1,7 @@
 <?php
 namespace Ridmic\Core;
 
+include_once "core/debug.php";
 include_once "core/object.php";
 
 class Request extends Object 

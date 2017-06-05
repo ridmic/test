@@ -1,6 +1,7 @@
 <?php
 namespace Ridmic\Core;
 
+include_once "core/debug.php";
 include_once "core/object.php";
 
 class Router extends Object {
@@ -84,13 +85,13 @@ class Router extends Object {
 
     public function addRoute($method, $pattern, $handler , $name = '')
     {
-        $this->traceEnterFunc();
+        Debug::traceEnterFunc();
 
         $this->routes[$method][$pattern] = [$name => $handler];
         if ( is_array($handler) )
-          $this->debug( "Routing: %s:%s to '%s' => '%s@%s'", $method, $pattern, $name, "".$handler[0], "".$handler[1] );
+          Debug::debug( "Routing: %s:%s to '%s' => '%s@%s'", $method, $pattern, $name, "".$handler[0], "".$handler[1] );
         else
-          $this->debug( "Routing: %s:%s to '%s' => '%s'", $method, $pattern, $name, $handler );
+          Debug::debug( "Routing: %s:%s to '%s' => '%s'", $method, $pattern, $name, $handler );
         if ( is_string($name) && $name != '' )
         {
             // Check for a regex type path
@@ -101,21 +102,21 @@ class Router extends Object {
             }
             $this->namedRoutes[$name] = $pattern;
         }
-        $this->traceLeaveFunc();
+        Debug::traceLeaveFunc();
     }
 
     public function match( $m, $request )
     {
-        $this->traceEnterFunc();
+        Debug::traceEnterFunc();
         
         $retVal  = [];
         $methods = array( $m, 'any' );
-        $this->debug("Matching: %s:%s", $method, $request);
+        Debug::debug("Matching: %s:%s", $method, $request);
         foreach ( $methods as $method )
         {
             foreach ($this->routes[$method] as $pattern => $handler) 
             {
-                $this->debug("Against: %s:%s", $method, $pattern );
+                Debug::debug("Against: %s:%s", $method, $pattern );
                 $args   = []; 
                 $class  = null;
                 list($name, $meth) = each($handler); 
@@ -124,14 +125,14 @@ class Router extends Object {
                 if ( preg_match(self::REGVAL, $pattern) )
                 {
                     list($args, $uri, $pattern) = $this->parseRegexRoute($request, $pattern); 
-                    $this->debug("Expanding to: %s:%s", $method, $pattern );
+                    Debug::debug("Expanding to: %s:%s", $method, $pattern );
                 }
     
                 // Do we have a match?
                 if ( !preg_match(($this->exactMatch ? "#^$pattern$#" : "#^$pattern#"), $request) )
                     continue ;
 
-                $this->debug("Matched: $request");
+                Debug::debug("Matched: $request");
 
                 // Check for class@method type path
                 if ( is_string($meth) && strpos($meth, '@'))
@@ -145,11 +146,11 @@ class Router extends Object {
                     $meth  = $meth[1]; 
                 }
                 $retVal = ["class" => $class, "method" => $meth, "args" => $this->cleanInputs($args) ];
-                $this->traceLeaveFunc( $retVal );
+                Debug::traceLeaveFunc( $retVal );
                 return $retVal;
             }
         }
-        $this->traceLeaveFunc( $retVal );
+        Debug::traceLeaveFunc( $retVal );
         return $retVal;
     }
 

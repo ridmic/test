@@ -1,6 +1,7 @@
 <?php
 namespace Ridmic\Core;
 
+include_once "core/debug.php";
 include_once "core/object.php";
 
 class Dispatcher extends Object
@@ -18,7 +19,7 @@ class Dispatcher extends Object
 
   public function setResponse( $resp )
   {
-    $this->traceEnterFunc();
+    Debug::traceEnterFunc();
   
     $this->class  = isset($resp['class']) ? $resp['class'] : null;
     $this->method = isset($resp['method']) ? $resp['method'] : null;
@@ -27,13 +28,13 @@ class Dispatcher extends Object
     $handler = is_null( $this->class ) ? $this->method : array( $this->class, $this->method );
     $retVal  = is_callable($handler);
 
-    $this->traceLeaveFunc($retVal);
+    Debug::traceLeaveFunc($retVal);
     return $retVal;
   }
   
   public function dispatch( $c = null, $m = null, $a = null )
   {
-    $this->traceEnterFunc();
+    Debug::traceEnterFunc();
 
     $retVal = null;
     $class  = is_null($c) ? $this->class : $c;
@@ -46,16 +47,16 @@ class Dispatcher extends Object
     if ( is_callable($handler) )
     {
        if ( is_null($class) )
-         $this->debug( 'Dispatching to: %s(%s)', $method, implode( ',', $args ) );
+         Debug::debug( 'Dispatching to: %s(%s)', $method, implode( ',', $args ) );
        else
-         $this->debug( 'Dispatching to: %s@%s(%s)', "".$class, $method, implode( ',', $args ) );
+         Debug::debug( 'Dispatching to: %s@%s(%s)', "".$class, $method, implode( ',', $args ) );
        $retVal = call_user_func_array($handler, $args );
     }
     else
     {
-       $this->debug( 'Nothing to dispatch to!' );
+       Debug::debug( 'Nothing to dispatch to!' );
     }
-    $this->traceLeaveFunc($retVal);
+    Debug::traceLeaveFunc($retVal);
     return $retVal;
   }
 }

@@ -1,16 +1,17 @@
 <?php
 include "header.php";
-include "core/object.php";
-include "core/request.php";
-include "core/router.php";
-include "core/dispatcher.php";
+include_once "core/debug.php";
+include_once "core/object.php";
+include_once "core/request.php";
+include_once "core/router.php";
+include_once "core/dispatcher.php";
 
 include "core/controller.php";
 
 use Ridmic\Core as Core;
 
-Core\Object::defDebugLevel( Core\Object::DBG_DEBUG );
-Core\Object::defShowDateTime( false );
+Core\Debug::level( Core\Debug::DBG_DEBUG );
+Core\Debug::showDateTime( false );
 
 class myController extends Core\Controller
 {
@@ -24,11 +25,11 @@ class myController extends Core\Controller
     
     public function test( $id=0)
     {
-      $this->write( "---> Called: myController@test($id)!" );
+      Core\Debug::write( "---> Called: myController@test($id)!" );
     } 
     public function testUser( $id=0, $v=null )
     {
-      $this->write("---> Called: myController@testUser($id, $v)!");
+      Core\Debug::write( "---> Called: myController@testUser($id, $v)!" );
     }
 }
   
