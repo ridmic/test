@@ -8,16 +8,9 @@ class Router extends Object {
 
     const REGVAL = '#({:.+?})#';    
     
-    protected $routes = [
-        'get'       => [],
-        'post'      => [],
-        'put'       => [],
-        'delete'    => [],
-        'options'   => [],
-        'patch'     => [],
-        //'head'       => [],
-        'any'       => []
-    ];
+    protected $before = ['any' => [], 'get' => [], 'post' => [], 'put' => [], 'delete' => [], 'options' => [], 'patch' => [], 'head' => [] ];
+    protected $routes = ['any' => [], 'get' => [], 'post' => [], 'put' => [], 'delete' => [], 'options' => [], 'patch' => [], 'head' => [] ];
+    protected $after  = ['any' => [], 'get' => [], 'post' => [], 'put' => [], 'delete' => [], 'options' => [], 'patch' => [], 'head' => [] ];
 
     protected $patterns = [
         ':any'      => '.*',
@@ -41,71 +34,90 @@ class Router extends Object {
         return array_keys( $this->routes );
     }
 
-    public function any($pattern, $handler, $name = '' )
+    public function addBefore($method, $pattern, $handler , $name = '')
     {
-        $this->addRoute('any', $pattern, $handler, $name );
-        return $this;
+        $this->addRouteType('before', $method, $pattern, $handler , $name = '');
     }
     
-    public function get($pattern, $handler, $name = '' )
-    {
-        $this->addRoute('get', $pattern, $handler, $name );
-        return $this;
-    }
-    
-    public function post($pattern, $handler, $name = '' )
-    {
-        $this->addRoute('post', $pattern, $handler, $name);
-        return $this;
-    }
-    
-    public function put($pattern, $handler, $name = '')
-    {
-        $this->addRoute('put', $pattern, $handler, $name );
-        return $this;
-    }
-    
-    public function delete($pattern, $handler, $name = '' )
-    {
-        $this->addRoute('delete', $pattern, $handler, $name);
-        return $this;
-    }
-    
-    public function patch($pattern, $handler, $name = '')
-    {
-        $this->addRoute('patch', $pattern, $handler, $name );
-        return $this;
-    }
-
-    public function options($pattern, $handler, $name = '' )
-    {
-        $this->addRoute('options', $pattern, $handler, $name);
-        return $this;
-    }
-
     public function addRoute($method, $pattern, $handler , $name = '')
+    {
+        $this->addRouteType('route', $method, $pattern, $handler , $name = '');
+    }
+
+    public function addAfter($method, $pattern, $handler , $name = '')
+    {
+        $this->addRouteType('after', $method, $pattern, $handler , $name = '');
+    }
+    
+    public function addRouteType($type, $method, $pattern, $handler , $name = '')
     {
         Debug::traceEnterFunc();
 
-        $this->routes[$method][$pattern] = [$name => $handler];
-        if ( is_array($handler) )
-          Debug::debug( "Routing: %s:%s to '%s' => '%s@%s'", $method, $pattern, $name, "".$handler[0], "".$handler[1] );
-        else
-          Debug::debug( "Routing: %s:%s to '%s' => '%s'", $method, $pattern, $name, $handler );
-        if ( is_string($name) && $name != '' )
+        switch( $type )
         {
-            // Check for a regex type path
-            if ( preg_match(self::REGVAL, $pattern, $matches) )
-            {
-                $matches = preg_split(self::REGVAL, $pattern);
-                $pattern = rtrim($matches[0], '/');
-            }
-            $this->namedRoutes[$name] = $pattern;
+            case 'before':
+                $this->before[$method][$pattern] = [$name => $handler];
+                break;
+                
+            case 'after':
+                $this->after[$method][$pattern] = [$name => $handler];
+                break;
+                
+            default:
+                $this->routes[$method][$pattern] = [$name => $handler];
+                if ( is_string($name) && $name != '' )
+                {
+                    // Check for a regex type path
+                    if ( preg_match(self::REGVAL, $pattern, $matches) )
+                    {
+                        $matches = preg_split(self::REGVAL, $pattern);
+                        $pattern = rtrim($matches[0], '/');
+                    }
+                    $this->namedRoutes[$name] = $pattern;
+                }
+                break;
         }
+        // Bit of debugging
+        if ( is_array($handler) )
+          Debug::debug( "Routing (%s): %s:%s to '%s' => '%s@%s'", $type, $method, $pattern, $name, "".$handler[0], "".$handler[1] );
+        else
+          Debug::debug( "Routing (%s): %s:%s to '%s' => '%s'", $type, $method, $pattern, $name, $handler );
+          
         Debug::traceLeaveFunc();
     }
 
-    public function match( $m, $request )
+    public function matchBefore( $m, $request )
+    {
+        Debug::traceEnterFunc();
+        
+        $retVal = $this->_match( $this->before, $m, $request );
+        
+        Debug::traceLeaveFunc( $retVal );
+        return $retVal;
+    }
+
+    public function matchRoute( $m, $request )
+    {
+        Debug::traceEnterFunc();
+        
+        $retVal = $this->_match( $this->routes, $m, $request );
+        
+        Debug::traceLeaveFunc( $retVal );
+        return $retVal;
+    }
+
+    public function matchAfter( $m, $request )
+    {
+        Debug::traceEnterFunc();
+        
+        $retVal = $this->_match( $this->after, $m, $request );
+        
+        Debug::traceLeaveFunc( $retVal );
+        return $retVal;
+    }
+
+
+    protected function _match( $routes, $m, $request )
     {
         Debug::traceEnterFunc();
         
@@ -114,7 +126,7 @@ class Router extends Object {
         Debug::debug("Matching: %s:%s", $method, $request);
         foreach ( $methods as $method )
         {
-            foreach ($this->routes[$method] as $pattern => $handler) 
+            foreach ($routes[$method] as $pattern => $handler) 
             {
                 Debug::debug("Against: %s:%s", $method, $pattern );
                 $args   = []; 

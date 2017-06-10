@@ -32,6 +32,24 @@ class Request extends Object
    
     // Access
     function arg( $name )                   { return array_key_exists($name, $this->args ) ? $this->args[$name] : null; }
+    
+    
+    function run( Dispatcher $dispatcher, Router $router )
+    {
+      // Try and dispatch befores
+      if ( $dispatcher->setResponse( $router->matchBefore( $this->method, $this->path ) ) )
+        $dispatcher->dispatch();
+    
+      // Try and dispatch routes
+      if ( $dispatcher->setResponse( $router->matchRoute( $this->method, $this->path ) ) )
+        $dispatcher->dispatch();
+    
+        // Try and dispatch afters
+      if ( $dispatcher->setResponse( $router->matchAfter( $this->method, $this->path ) ) )
+        $dispatcher->dispatch();
+    }
+    
+    
 }
 
 ?>

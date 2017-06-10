@@ -15,14 +15,7 @@ Core\Debug::showDateTime( false );
 
 class myController extends Core\Controller
 {
-    function __construct( Core\Router $router )
-    {
-      $this->routes = [ 'get' => [ 'user2/{:id}'               => [$this, 'test'],
-                                   'user2/{:id}/does/{:id}'    => [$this, 'testUser'] ] ];
-      parent::__construct( $router );
-      
-    }
-    
+
     public function test( $id=0)
     {
       Core\Debug::write( "---> Called: myController@test($id)!" );
@@ -31,6 +24,29 @@ class myController extends Core\Controller
     {
       Core\Debug::write( "---> Called: myController@testUser($id, $v)!" );
     }
+    public function before()
+    {
+      Core\Debug::write( "---> Called: myController@before()!" );
+    }
+    public function after()
+    {
+      Core\Debug::write( "---> Called: myController@after()!" );
+    }
+    
+    // Overrides
+    protected function registerRoutes( Core\Router $router )
+    {
+      // Befores
+      $router->addBefore( 'any', '{:any}', [$this, 'before' ] );        
+      
+      // Befores
+      $router->addRoute( 'get', 'user2/{:id}', [$this, 'test' ] );        
+      $router->addRoute( 'get', 'user2/{:id}/does/{:id}', [$this, 'testUser' ] );        
+      
+      // Befores
+      $router->addAfter( 'any', '{:any}', [$this, 'after' ] );        
+    }
+    
 }
   
 $request    = new Core\Request();
@@ -40,16 +56,14 @@ $dispatcher = new Core\Dispatcher();
 $myController = new myController( $router );
 
 
-$testRoutes = [ 'ddd', 'user1/111', 'user2/222', 'user2/333/does/444' ];   
+$testRoutes = [ '', 'ddd', 'user1/111', 'user2/222', 'user2/333/does/444' ];   
 $request->setMethod( 'get' );
 foreach ( $testRoutes as $path )  
 {
   // Get a request
   $request->setpath( $path );
+  $request->run( $dispatcher, $router );
 
-  // Try and dispatch it
-  if ( $dispatcher->setResponse( $router->match( $request->getMethod(), $request->getPath() ) ) )
-    $dispatcher->dispatch();
 }
 
 include "footer.php";
