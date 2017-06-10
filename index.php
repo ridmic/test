@@ -10,7 +10,7 @@ include "core/controller.php";
 
 use Ridmic\Core as Core;
 
-Core\Debug::level( Core\Debug::DBG_DEBUG );
+Core\Debug::level( Core\Debug::DBG_ALWAYS );
 Core\Debug::showDateTime( false );
 
 class myController extends Core\Controller
@@ -63,7 +63,6 @@ foreach ( $testRoutes as $path )
   // Get a request
   $request->setpath( $path );
   $request->run( $dispatcher, $router );
-
 }
 
 include "footer.php";

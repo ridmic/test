@@ -34,21 +34,29 @@ class Request extends Object
     function arg( $name )                   { return array_key_exists($name, $this->args ) ? $this->args[$name] : null; }
     
     
-    function run( Dispatcher $dispatcher, Router $router )
+    function run( Dispatcher $dispatcher, Router $router, $always = false )
     {
-      // Try and dispatch befores
-      if ( $dispatcher->setResponse( $router->matchBefore( $this->method, $this->path ) ) )
-        $dispatcher->dispatch();
-    
-      // Try and dispatch routes
-      if ( $dispatcher->setResponse( $router->matchRoute( $this->method, $this->path ) ) )
-        $dispatcher->dispatch();
-    
-        // Try and dispatch afters
-      if ( $dispatcher->setResponse( $router->matchAfter( $this->method, $this->path ) ) )
-        $dispatcher->dispatch();
+        Debug::traceEnterFunc();
+        
+        // Do we have a match?
+        $response = $router->matchRoute( $this->method, $this->path );
+        $matched  = $dispatcher->setResponse( $response );
+
+        // Dispatch befores (if we have matched our main route)
+        if ( ($always || $matched) && $dispatcher->setResponse( $router->matchBefore( $this->method, $this->path ) ) )
+            $dispatcher->dispatch();
+        
+        // Dispatch routes
+        if ( $matched && $dispatcher->setResponse( $response ) )
+            $dispatcher->dispatch();
+        
+        // Dispatch afters (if we have matched our main route)
+        if ( ($always || $matched) && $dispatcher->setResponse( $router->matchAfter( $this->method, $this->path ) ) )
+            $dispatcher->dispatch();
+            
+        Debug::traceLeaveFunc($matched);
+        return $matched;
     }
-    
     
 }
 
