@@ -50,11 +50,13 @@ class Router extends Object {
         $this->route('after', $method, $pattern, $handler );
     }
     
-    public function matchBefore( $m, $request )
+    public function matchBefore( $m, $request, $matchAll=false )
     {
         Debug::traceEnterFunc();
         
-        $retVal = $this->match( $this->before, $m, $request );
+        Debug::debug( "Matching BEFORE (BEG)" );
+        $retVal = $this->match( $this->before, $m, $request, $matchAll );
+        Debug::debug( "Matching BEFORE (END)" );
         
         Debug::traceLeaveFunc( $retVal );
         return $retVal;
@@ -64,17 +66,21 @@ class Router extends Object {
     {
         Debug::traceEnterFunc();
         
+        Debug::debug( "Matching ROUTE (BEG)" );
         $retVal = $this->match( $this->routes, $m, $request );
+        Debug::debug( "Matching ROUTE (END)" );
         
         Debug::traceLeaveFunc( $retVal );
         return $retVal;
     }
 
-    public function matchAfter( $m, $request  )
+    public function matchAfter( $m, $request, $matchAll=false  )
     {
         Debug::traceEnterFunc();
         
-        $retVal = $this->match( $this->after, $m, $request );
+        Debug::debug( "Matching AFTER (BEG)" );
+        $retVal = $this->match( $this->after, $m, $request, $matchAll );
+        Debug::debug( "Matching AFTER (END)" );
         
         Debug::traceLeaveFunc( $retVal );
         return $retVal;
@@ -124,16 +130,16 @@ class Router extends Object {
             switch( $type )
             {
                 case 'before':
-                    $this->before[$method][$pattern] = [$name => $handler];
+                    $this->before[$method][] = [$pattern => [$name => $handler]];
                     break;
                     
                 case 'after':
-                    $this->after[$method][$pattern] = [$name => $handler];
+                    $this->after[$method][] = [$pattern => [$name => $handler]];
                     break;
                     
                 case 'route':
                 default:
-                    $this->routes[$method][$pattern] = [$name => $handler];
+                    $this->routes[$method][] = [$pattern => [$name => $handler]];
                     if ( is_string($name) && $name != '' )
                     {
                         // Check for a regex type path
@@ -156,7 +162,7 @@ class Router extends Object {
     }
 
     // We only match first item!
-    protected function match( $routes, $m, $request )
+    protected function match( $routes, $m, $request, $matchAll=false )
     {
         Debug::traceEnterFunc();
         
@@ -165,42 +171,57 @@ class Router extends Object {
         Debug::debug("Matching: %s:%s", $method, $request);
         foreach ( $methods as $method )
         {
-            foreach ($routes[$method] as $pattern => $handler) 
+            foreach ($routes[$method] as $route ) 
             {
-                Debug::debug("Against: %s:%s", $method, $pattern );
-                $args   = []; 
-                $class  = null;
-                list($name, $meth) = each($handler); 
-
-                // Check for a regex type path
-                if ( preg_match(self::REGVAL, $pattern) )
+                foreach ( $route as $pattern => $handler )
                 {
-                    list($args, $uri, $pattern) = $this->parseRegexRoute($request, $pattern); 
-                    Debug::debug("Expanding to: %s:%s", $method, $pattern );
-                }
+                    Debug::debug("Against: %s:%s", $method, $pattern );
+                    $args   = []; 
+                    $class  = null;
+                    list($name, $meth) = each($handler); 
     
-                // Do we have a match?
-                if ( !preg_match(($this->exactMatch ? "#^$pattern$#" : "#^$pattern#"), $request) )
-                    continue ;
+                    $exactMatch = substr($pattern, -1) == '#' ? false : $this->exactMatch;
+                    $pattern    = substr($pattern, -1) == '#' ? substr($pattern, 0, -1) : $pattern;
 
-                Debug::debug("Matched: $request");
-
-                // Check for class@method type path
-                if ( is_string($meth) && strpos($meth, '@'))
-                {
-                    list($class, $meth) = explode('@', $meth); 
+                    // Check for a regex type path
+                    if ( preg_match(self::REGVAL, $pattern) )
+                    {
+                        list($args, $uri, $pattern) = $this->parseRegexRoute($request, $pattern); 
+                        Debug::debug("Expanding to: %s:%s", $method, $pattern );
+                    }
+        
+                    // Do we have a match?
+                    if ( !preg_match(($exactMatch ? "#^$pattern$#" : "#^$pattern#"), $request) )
+                        continue ;
+    
+                    Debug::debug("Matched: %s", $request);
+    
+                    // Check for class@method type path
+                    if ( is_string($meth) && strpos($meth, '@'))
+                    {
+                        list($class, $meth) = explode('@', $meth); 
+                    }
+                    // Check for object
+                    if ( is_array($meth) && is_object($meth[0]) )
+                    {
+                        $class = $meth[0];
+                        $meth  = $meth[1]; 
+                    }
+                    $match = ["class" => $class, "method" => $meth, "args" => $this->cleanInputs($args) ];
+                    Debug::debug("To: %s", $match);
+                    
+                    // Mathing all routes?
+                    if ( ! $matchAll )
+                    {
+                        Debug::traceLeaveFunc( $match );
+                        return $match;
+                    }
+                    // Accumlate matches
+                    $retVal[] = $match;
                 }
-                // Check for object
-                if ( is_array($meth) && is_object($meth[0]) )
-                {
-                    $class = $meth[0];
-                    $meth  = $meth[1]; 
-                }
-                $retVal = ["class" => $class, "method" => $meth, "args" => $this->cleanInputs($args) ];
-                Debug::traceLeaveFunc( $retVal );
-                return $retVal;
             }
         }
+        // Here we return an array of matches (if we have one)
         Debug::traceLeaveFunc( $retVal );
         return $retVal;
     }

@@ -115,12 +115,22 @@ class Request extends Object
         $handled        = 0;
         $okToContinue   = true;
 
-        // Dispatch befores (if we have matched our main route)
-        if ( ($always || $matched) && $dispatcher->setResponse( $router->matchBefore( $this->method, $this->path ) ) )
+        // Dispatch (multiple) befores (if we have matched our main route)
+        if ( $always || $matched )
         {
-            $okToContinue = $dispatcher->dispatch() === true;
-            $handled++;
+            // Get our list of matches
+            $matches = $router->matchBefore( $this->method, $this->path, true );
+            foreach ( $matches as $match )
+            {
+                if ( $okToContinue && is_array($match) && $dispatcher->setResponse( $match ) )
+                {
+                    $okToContinue = $dispatcher->dispatch() === true;
+                    $handled++;
+                }
+            }
         }
+        
+        // Are we ok to continue with the main route?
         if ( $okToContinue )
         {
             // Dispatch routes
@@ -130,11 +140,19 @@ class Request extends Object
                 $handled++;
             }
             
-            // Dispatch afters (if we have matched our main route)
-            if ( ($always || $matched) && $dispatcher->setResponse( $router->matchAfter( $this->method, $this->path ) ) )
+            // Dispatch (multiple) afters (if we have matched our main route)
+            if ( $always || $matched )
             {
-                $dispatcher->dispatch();
-                $handled++;
+                // Get our list of matches
+                $matches = $router->matchAfter( $this->method, $this->path, true );
+                foreach ( $matches as $match )
+                {
+                    if ( $okToContinue && is_array($match) && $dispatcher->setResponse( $match ) )
+                    {
+                        $okToContinue = $dispatcher->dispatch() === true;
+                        $handled++;
+                    }
+                }
             }
         }  
         // If we did not find a handler, look for a default

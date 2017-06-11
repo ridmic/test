@@ -31,9 +31,19 @@ class myController extends Core\Controller
       Core\Debug::write( "---> Called: myController@before()!" );
       return true;
     }
+    public function before2()
+    {
+      Core\Debug::write( "---> Called: myController@before2()!" );
+      return true;
+    }
     public function after()
     {
       Core\Debug::write( "---> Called: myController@after()!" );
+      return true;
+    }
+    public function after2()
+    {
+      Core\Debug::write( "---> Called: myController@after2()!" );
       return true;
     }
     
@@ -42,6 +52,7 @@ class myController extends Core\Controller
     {
       // Befores
       $router->addBefore( 'ANY', '{:any}', [$this, 'before' ] );        
+      $router->addBefore( 'ANY', '{:any}', [$this, 'before2' ] );        
       
       // Befores
       $router->addRoute( 'GET', 'user2/{:id}', [$this, 'test' ] );        
@@ -49,6 +60,7 @@ class myController extends Core\Controller
 
       // Befores
       $router->addAfter( 'ANY', '{:any}', [$this, 'after' ] );        
+      $router->addAfter( 'ANY', '{:any}', [$this, 'after2' ] );        
     }
     
 }
@@ -68,12 +80,12 @@ $request->setNotFound( 'callBack');
 $myController = new myController( $router );
 
 
-$testRoutes = [ $baseRoute.'/', $baseRoute.'/ddd', $baseRoute.'/user1/111', $baseRoute.'/user2/222', $baseRoute.'/user2/333/does/444' ];   
+$testRoutes = [ $baseRoute.'/', $baseRoute.'/ddd', $baseRoute.'/user1/111', $baseRoute.'/user2/222', $baseRoute.'/user2/222/XXX', $baseRoute.'/user2/333/does/444' ];   
 foreach ( $testRoutes as $path )  
 {
   // Get a request
   $request->setpath( $path );
-  $request->run( $dispatcher, $router );
+  $request->run( $dispatcher, $router, false );
 }
 
 include "footer.php";
