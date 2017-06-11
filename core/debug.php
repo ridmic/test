@@ -5,6 +5,7 @@ class Debug
 {
     static protected  $level      = 1; 
     static protected  $showDate   = false;
+    static protected  $showDebug  = true;
     static protected  $curIndent  = 0;
     
     const        DBG_ALWAYS       = 0;
@@ -37,11 +38,14 @@ class Debug
           $date = new \DateTime();
           $dt   = $date->format('d/m/Y H:i:s');
           $sp   = str_repeat( '. ', self::$curIndent );
-          if ( self::$showDate )
-            print "[$dt] $sp $msg<br>\n";
-          else
-            print "$sp $msg<br>";
-      }
+          if ( self::$showDebug === true )
+          {
+              if ( self::$showDate )
+                print "[$dt] $sp $msg<br>\n";
+              else
+                print "$sp $msg<br>";
+          }
+       }
     } 
     
     static function write( $msg ) 
@@ -102,7 +106,7 @@ class Debug
         $detail = "{ $file @ $line }";
           
         array_walk( $v, function(&$value, $key) { $value = print_r($value, true); } );
-        self::$_write( "FUNC <<: ".get_class($this)."::$f(".implode(', ', $v).") => retval(".print_r($vv, true).") : $detail", DBG_TRACE );
+        self::_write( "FUNC <<: ".get_class($this)."::$f(".implode(', ', $v).") => retval(".print_r($vv, true).") : $detail", DBG_TRACE );
       }
     }
 }

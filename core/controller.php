@@ -15,6 +15,7 @@ class Controller extends Object
   public function index()
   {
     Debug::write('Hello World!');
+    return true;
   }
 
 
