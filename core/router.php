@@ -1,249 +1,133 @@
 <?php
 namespace Ridmic\Core;
 
+include_once "core/utils.php";
 include_once "core/debug.php";
 include_once "core/object.php";
 
-class Router extends Object {
+class RouteList extends Object
+{
+    const       REGVAL          = '/({:.+?})/';    
+    protected   $patterns       = [ ':any'      => '(.*)',
+                                    ':id'       => '([0-9]+)',
+                                    ':slug'     => '([a-z\-]+)',
+                                    ':name'     => '([a-zA-Z]+)',
+                                    ':hex'      => '([0-9a-fA-F]+)',
+                                    ':alphanum' => '([0-9a-zA-Z]+)'
+                                  ];
 
-    const REGVAL = '#({:.+?})#';    
+    protected   $allowedMethods = 'GET|POST|PUT|DELETE|OPTIONS|PATCH|HEAD';
+    protected   $routes         = [];
+    protected   $baseRoute      = '';
+    protected   $exactMatch     = true;
+    protected   $caseMatch      = false;
     
-    protected $before   = ['ANY' => [], 'GET' => [], 'POST' => [], 'PUT' => [], 'DELETE' => [], 'OPTIONS' => [], 'PATCH' => [], 'HEAD' => [] ];
-    protected $routes   = ['ANY' => [], 'GET' => [], 'POST' => [], 'PUT' => [], 'DELETE' => [], 'OPTIONS' => [], 'PATCH' => [], 'HEAD' => [] ];
-    protected $after    = ['ANY' => [], 'GET' => [], 'POST' => [], 'PUT' => [], 'DELETE' => [], 'OPTIONS' => [], 'PATCH' => [], 'HEAD' => [] ];
-
-    protected $patterns = [
-        ':any'      => '.*',
-        ':id'       => '[0-9]+',
-        ':slug'     => '[a-z\-]+',
-        ':name'     => '[a-zA-Z]+',
-        ':alphanum' => '[0-9a-zA-Z]+'
-    ];
-    
-    protected   $namedRoutes        = [];
-    protected   $baseRoute          = "";
-    protected   $exactMatch         = true;
-    protected   $supportedMethods   = ['ANY', 'GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH', 'HEAD' ];
-    
-    function __construct( $exactMatch = true ) 
-    {
-        $this->exactMatch = $exactMatch;
-    }
-
-    public function allowedMethods()
-    {
-        return array_keys( $this->routes );
-    }
-
-    public function addBefore($method, $pattern, $handler )
-    {
-        $this->route('before', $method, $pattern, $handler );
-    }
-    
-    public function addRoute($method, $pattern, $handler , $name = '')
-    {
-        $this->route('route', $method, $pattern, $handler , $name );
-    }
-
-    public function addAfter($method, $pattern, $handler )
-    {
-        $this->route('after', $method, $pattern, $handler );
-    }
-    
-    public function matchBefore( $m, $request, $matchAll=false )
-    {
-        Debug::traceEnterFunc();
-        
-        Debug::debug( "Matching BEFORE (BEG)" );
-        $retVal = $this->match( $this->before, $m, $request, $matchAll );
-        Debug::debug( "Matching BEFORE (END)" );
-        
-        Debug::traceLeaveFunc( $retVal );
-        return $retVal;
-    }
-
-    public function matchRoute( $m, $request  )
-    {
-        Debug::traceEnterFunc();
-        
-        Debug::debug( "Matching ROUTE (BEG)" );
-        $retVal = $this->match( $this->routes, $m, $request );
-        Debug::debug( "Matching ROUTE (END)" );
-        
-        Debug::traceLeaveFunc( $retVal );
-        return $retVal;
-    }
-
-    public function matchAfter( $m, $request, $matchAll=false  )
-    {
-        Debug::traceEnterFunc();
-        
-        Debug::debug( "Matching AFTER (BEG)" );
-        $retVal = $this->match( $this->after, $m, $request, $matchAll );
-        Debug::debug( "Matching AFTER (END)" );
-        
-        Debug::traceLeaveFunc( $retVal );
-        return $retVal;
-    }
-
-    public function routeTo( $name )
-    {
-        $route = '/';
-        if ( array_key_exists($name, $this->namedRoutes) )
-            $route =  $this->baseURL . $this->namedRoutes[$name];
-         return $route;
-    }
-    
-    public function setBaseRoute( $route )
-    {
-        if (is_string($route) )
-            $this->baseRoute = rtrim($route,'/');
-    }
-    public function baseRoute()  { return $this->baseRoute;   }
-    
-    public function routes()
-    {
-        return $this->routes;
-    }
-    
-
-    // =========================================================================    
-    
-
-    protected function route($type, $methods, $pattern, $handler , $name = '')
+    function add( $methods, $pattern, $fn )
     {
         Debug::traceEnterFunc();
 
-        // Apply any base route
-        $pattern = rtrim($this->baseRoute) . '/' . trim($pattern,'/');
-
-        // Allow mutiple methods
-        foreach ( explode('|', strtoupper($methods) ) as $method )
+        // build our route
+        $pattern = $this->baseRoute . '/' . trim($pattern, '/');
+        $pattern = $this->baseRoute ? rtrim($pattern, '/') : $pattern;
+        
+        // Add the routes
+        $methods = strtoupper($methods);
+        $methods = $methods == 'ALL' ? $this->allowedMethods : $methods;
+        $methods = explode('|', $methods);
+        foreach ( $methods as $method ) 
         {
-            // Supported method?
-            if ( ! in_array( $method, $this->supportedMethods ))
+            if ( in_array($method, explode('|', $this->allowedMethods)) )
             {
-                Debug::debug( "Unsupported Method: %s", $method );
-                continue;
-            }
-            
-            switch( $type )
-            {
-                case 'before':
-                    $this->before[$method][] = [$pattern => [$name => $handler]];
-                    break;
-                    
-                case 'after':
-                    $this->after[$method][] = [$pattern => [$name => $handler]];
-                    break;
-                    
-                case 'route':
-                default:
-                    $this->routes[$method][] = [$pattern => [$name => $handler]];
-                    if ( is_string($name) && $name != '' )
-                    {
-                        // Check for a regex type path
-                        if ( preg_match(self::REGVAL, $pattern, $matches) )
-                        {
-                            $matches = preg_split(self::REGVAL, $pattern);
-                            $pattern = rtrim($matches[0], '/');
-                        }
-                        $this->namedRoutes[$name] = $pattern;
-                    }
-                    break;
-            }
-            // Bit of debugging
-            if ( is_array($handler) )
-              Debug::debug( "Routing (%s): %s:%s to '%s' => '%s@%s'", $type, $method, $pattern, $name, "".$handler[0], "".$handler[1] );
-            else
-              Debug::debug( "Routing (%s): %s:%s to '%s' => '%s'", $type, $method, $pattern, $name, $handler );
-        }  
+                $this->routes[$method][] = array( 'pattern' => $pattern, 'fn' => $fn );
+                
+                if ( is_array($fn) )
+                  Debug::debug( "Routing: %s:%s to %s@%s'", $method, $pattern, "".$fn[0], "".$fn[1] );
+                else
+                  Debug::debug( "Routing: %s:%s to %s'", $method, $pattern, $fn );
+           }
+        }
         Debug::traceLeaveFunc();
     }
 
-    // We only match first item!
-    protected function match( $routes, $m, $request, $matchAll=false )
+    public function match( $method, $uri, $matchAll = true )
     {
         Debug::traceEnterFunc();
-        
-        $retVal  = [];
-        $methods = array( strtoupper($m), 'ANY' );
-        Debug::debug("Matching: %s:%s", $method, $request);
-        foreach ( $methods as $method )
-        {
-            foreach ($routes[$method] as $route ) 
-            {
-                foreach ( $route as $pattern => $handler )
-                {
-                    Debug::debug("Against: %s:%s", $method, $pattern );
-                    $args   = []; 
-                    $class  = null;
-                    list($name, $meth) = each($handler); 
-    
-                    $exactMatch = substr($pattern, -1) == '#' ? false : $this->exactMatch;
-                    $pattern    = substr($pattern, -1) == '#' ? substr($pattern, 0, -1) : $pattern;
 
-                    // Check for a regex type path
-                    if ( preg_match(self::REGVAL, $pattern) )
-                    {
-                        list($args, $uri, $pattern) = $this->parseRegexRoute($request, $pattern); 
-                        Debug::debug("Expanding to: %s:%s", $method, $pattern );
-                    }
-        
-                    // Do we have a match?
-                    if ( !preg_match(($exactMatch ? "#^$pattern$#" : "#^$pattern#"), $request) )
-                        continue ;
-    
-                    Debug::debug("Matched: %s", $request);
-    
-                    // Check for class@method type path
-                    if ( is_string($meth) && strpos($meth, '@'))
-                    {
-                        list($class, $meth) = explode('@', $meth); 
-                    }
-                    // Check for object
-                    if ( is_array($meth) && is_object($meth[0]) )
-                    {
-                        $class = $meth[0];
-                        $meth  = $meth[1]; 
-                    }
-                    $match = ["class" => $class, "method" => $meth, "args" => $this->cleanInputs($args) ];
-                    Debug::debug("To: %s", $match);
+        // Loop all routes
+        $matchedRoutes = [];
+        $method  = strtoupper($method);
+        if ( isset($this->routes[$method]) )
+        {
+            Debug::debug("Matching: %s:%s", $method, $uri );
+            
+            foreach ( $this->routes[$method] as $route ) 
+            {
+                // Replace our know parameter regex's
+                $pattern = $route['pattern'];
+                
+                // Allow route specific override of exact matching
+                $exactMatch = substr($pattern, -1) == '#' ? false : $this->exactMatch;
+                $pattern    = substr($pattern, -1) == '#' ? substr($pattern, 0, -1) : $pattern;
+
+
+                Debug::debug("Against: %s:%s", $method, $pattern );
+                
+                $pattern = preg_replace_callback(self::REGVAL, function($matches) 
+                                                             {
+                                                                $patterns   = $this->patterns; 
+                                                                $matches[0] = str_replace(['{', '}'], '', $matches[0]);
+                                                                if ( in_array($matches[0], array_keys($patterns)) )
+                                                                {                       
+                                                                    return  $patterns[$matches[0]];
+                                                                }
+                                                                return ltrim($matches[0], ':');
+                                                             }, $pattern );
+                // we have a match!
+                $match = $exactMatch ? "#^{$pattern}$#" : "#^{$pattern}#";
+                $match = $this->caseMatch  ? $match : $match.'i';
+                if (preg_match_all($match, $uri, $matches, PREG_OFFSET_CAPTURE)) 
+                {
+                    // Rework matches to only contain the matches, not the orig string
+                    $matches = array_slice($matches, 1);
+                    // Extract the matched URL parameters (and only the parameters)
+                    $params = array_map(function ($match, $index) use ($matches) 
+                                        {
+                                            // We have a following parameter: take the substring from the current param position until the next one's position (thank you PREG_OFFSET_CAPTURE)
+                                            if (isset($matches[$index+1]) && isset($matches[$index+1][0]) && is_array($matches[$index+1][0])) 
+                                            {
+                                                return trim(substr($match[0][0], 0, $matches[$index+1][0][1] - $match[0][1]), '/');
+                                            } 
+                                            else // We have no following parameters: return the whole lot
+                                            {
+                                                return (isset($match[0][0]) ? trim($match[0][0], '/') : null);
+                                            }
+                                        }, $matches, array_keys($matches));
+                                        
+                   
                     
-                    // Mathing all routes?
-                    if ( ! $matchAll )
+                    // call the handling function with the URL parameters
+                    $matched            = [ 'fn' => $route['fn'], 'params' => $this->cleanInputs($params)];
+                    $matchedRoutes[]    = $matched;
+
+                    // If we need to quit, then quit
+                    if (!$matchAll) 
                     {
-                        Debug::traceLeaveFunc( $match );
-                        return $match;
+                        break;
                     }
-                    // Accumlate matches
-                    $retVal[] = $match;
                 }
             }
         }
-        // Here we return an array of matches (if we have one)
-        Debug::traceLeaveFunc( $retVal );
-        return $retVal;
-    }
-
-    protected function parseRegexRoute($requestUri, $resource)
-    {
-        $route = preg_replace_callback(self::REGVAL, function($matches) 
-                                                     {
-                                                        $patterns   = $this->patterns; 
-                                                        $matches[0] = str_replace(['{', '}'], '', $matches[0]);
-                                                        if ( in_array($matches[0], array_keys($patterns)) )
-                                                        {                       
-                                                            return  $patterns[$matches[0]];
-                                                        }
-                                                        return ltrim($matches[0], ':');
-                                                     }, $resource );
-
-        $regUri = explode('/', $resource); 
-        $args   = array_diff( array_replace($regUri, explode('/', $requestUri)), $regUri );  
-        return [array_values($args), $resource, $route]; 
+        Debug::debug("Matched: %s", $matchedRoutes );
+        
+        // Return the number of routes handled
+        Debug::traceLeaveFunc( $matchedRoutes );
+        return $matchedRoutes;
     }
     
+    public function routes() { return $this->routes; }
+    
+    
+    // Clean up any input parameters
     private function cleanInputs( $data ) 
     {
         $clean_input = array();
@@ -260,5 +144,97 @@ class Router extends Object {
         }
         return $clean_input;
     }
-
 }
+
+class Router
+{
+    protected   $routes     = null;
+    protected   $before     = null;
+    protected   $after      = null;
+    
+    public function __construct()
+    {
+        $this->before   = new RouteList;      // #1 : All of the matches here get called
+        $this->routes   = new RouteList;      // #2 : Only the first match of this gets called
+        $this->after    = new RouteList;      // #3 : All of the matches here get called
+    }
+    
+    public function before()    {  return $this->before; }
+    public function route()     {  return $this->routes; }
+    public function after()     {  return $this->after; }
+
+    public function getCurrentUri()
+    {
+        // Get the current Request URI and remove rewrite basepath from it (= allows one to run the router in a subfolder)
+        $basepath = implode('/', array_slice(explode('/', Input::server('SCRIPT_NAME')), 0, -1)) . '/';
+        $uri      = substr(Input::server('REQUEST_URI'), strlen($basepath));
+        // Don't take query params into account on the URL
+        if (strstr($uri, '?')) 
+        {
+            $uri = substr($uri, 0, strpos($uri, '?'));
+        }
+        // Remove trailing slash + enforce a slash at the start 
+        $uri = '/' . ltrim($uri, '/');
+        return $uri;
+    }
+
+    public function getRequestHeaders()
+    {
+        // getallheaders available, use that
+        if (function_exists('getallheaders')) 
+        {
+            return getallheaders();
+        }
+        // getallheaders not available: manually extract 'm
+        $headers = array();
+        foreach ($_SERVER as $name => $value) 
+        {
+            if ((substr($name, 0, 5) == 'HTTP_') || ($name == 'CONTENT_TYPE') || ($name == 'CONTENT_LENGTH')) 
+            {
+                $headers[str_replace(array(' ', 'Http'), array('-', 'HTTP'), ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = Input::sanitize($value);
+            }
+        }
+        return $headers;
+    }
+
+    public function getRequestMethod()
+    {
+        // Take the method as found in $_SERVER
+        $method = Input::server('REQUEST_METHOD');
+        // If it's a HEAD request override it to being GET and prevent any output, as per HTTP Specification
+        // @url http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.4
+        if (Input::server('REQUEST_METHOD') == 'HEAD') 
+        {
+            ob_start();
+            $method = 'GET';
+        } // If it's a POST request, check for a method override header
+        elseif ( Input::server('REQUEST_METHOD') == 'POST') 
+        {
+            $headers = $this->getRequestHeaders();
+            if (isset($headers['x-http-method-override']) && in_array($headers['x-http-method-override'], array('PUT', 'DELETE', 'PATCH'))) 
+            {
+                $method = $headers['x-http-method-override'];
+            }
+        }
+        return $method;
+    }
+    
+    public function closeRequestMethod()
+    {
+        // If it originally was a HEAD request, clean up after ourselves by emptying the output buffer
+        if (Input::server('REQUEST_METHOD') == 'HEAD') 
+        {
+            ob_end_clean();
+        }
+    }
+    
+    public function getAuthenticationToken()
+    {
+        $token   = '';
+        $headers = $this->getRequestHeaders();
+        $token   = isset($headers['x-http-authenticate']) ?  $headers['x-http-authenticate'] : '';
+        return $token;
+    }
+    
+}
+

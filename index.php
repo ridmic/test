@@ -51,28 +51,77 @@ class myController extends Core\Controller
     protected function registerRoutes( Core\Router $router )
     {
       // Befores
-      $router->addBefore( 'ANY', '{:any}', [$this, 'before' ] );        
-      $router->addBefore( 'ANY', '{:any}', [$this, 'before2' ] );        
+      $router->before()->add( 'ALL', '{:any}', [$this, 'before' ] );        
+      $router->before()->add( 'ALL', '{:any}', [$this, 'before2' ] );        
       
       // Befores
-      $router->addRoute( 'GET', 'user2/{:id}', [$this, 'test' ] );        
-      $router->addRoute( 'GET', 'user2/{:id}/does/{:id}', [$this, 'testUser' ] );        
+      //$router->route()->add( 'GET', 'user2/{:id}(?:/{:name})?', [$this, 'test' ] );        
+      $router->route()->add( 'GET', 'user2/{:id}#', [$this, 'test' ] );        
+      $router->route()->add( 'GET', 'user2/{:id}/does/{:id}', [$this, 'testUser' ] );        
 
       // Befores
-      $router->addAfter( 'ANY', '{:any}', [$this, 'after' ] );        
-      $router->addAfter( 'ANY', '{:any}', [$this, 'after2' ] );        
+      $router->after()->add( 'ALL', '{:any}', [$this, 'after' ] );        
+      $router->after()->add( 'ALL', '{:any}', [$this, 'after2' ] );        
     }
     
 }
 
-function callBack()
+
+function callBack1()
 {
-    Core\Debug::write('NOT FOUND!');
+    Core\Debug::write('NOT FOUND 1!');
+    return true;
 }
   
+function callBack2()
+{
+    Core\Debug::write('NOT FOUND 2!');
+    return true;
+}
+
+class TestClass 
+{
+    
+function callBack3()
+{
+    Core\Debug::write('NOT FOUND 3!');
+    return true;
+}
+
+}
+
+
 $request    = new Core\Request();
 $router     = new Core\Router();
-$dispatcher = new Core\Dispatcher();
+$dispatcher = new Core\Dispatcher($router);
+/*
+$routeList     = new Core\RouteList();
+$routeList->add('GET', 'user2/{:any}','callBack0' );
+$routeList->add('GET', 'user2/{:id}', 'callBack1' );
+$routeList->add('GET', 'user2/{:id}/{:id}/{:id}', 'callBack2' );
+*/
+
+//$router->before()->add('GET', '/user2/{:id}', 'callBack1');
+//$router->before()->add('GET', '/user2/{:id}', 'callBack1');
+
+//$router->route()->add('GET', '/user2/{:id}', 'callBack2');
+
+//$router->after()->add('GET', '/user2/{:id}', 'TestClass@callBack3');
+//$router->after()->add('GET', '/user2/{:id}', 'TestClass@callBack3');
+
+
+$myController = new myController( $router );
+
+
+//$testRoutes = [ $baseRoute.'/', $baseRoute.'/ddd', $baseRoute.'/user1/111', $baseRoute.'/user2/222', $baseRoute.'/user2/222/XXX', $baseRoute.'/user2/333/does/444' ];   
+$testRoutes = [ '/user2/222/XXX'];   
+foreach ( $testRoutes as $path )  
+{
+    $dispatcher->run('get', $path );
+}
+
+
+/*
 
 $baseRoute = '';
 $router->setBaseRoute($baseRoute);
@@ -87,6 +136,7 @@ foreach ( $testRoutes as $path )
   $request->setpath( $path );
   $request->run( $dispatcher, $router, false );
 }
+*/
 
 include "footer.php";
 ?>
