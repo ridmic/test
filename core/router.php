@@ -1,9 +1,11 @@
 <?php
 namespace Ridmic\Core;
 
-include_once "core/utils.php";
-include_once "core/debug.php";
-include_once "core/object.php";
+include_once "utils/input.php";
+include_once "debug.php";
+include_once "object.php";
+
+use \Ridmic\Core\Utils\Input    as Input;
 
 class RouteList extends Object
 {
@@ -117,14 +119,18 @@ class RouteList extends Object
                 }
             }
         }
-        Debug::debug("Matched: %s", $matchedRoutes );
+        if ( empty($matchedRoutes) )
+            Debug::debug("No Matches" );
+        else
+            Debug::debug("Matched: %s", $matchedRoutes );
         
         // Return the number of routes handled
         Debug::traceLeaveFunc( $matchedRoutes );
         return $matchedRoutes;
     }
     
-    public function routes() { return $this->routes; }
+    public function routes()        { return $this->routes; }
+    public function hasRoutes()     { return ! empty($this->routes); }
     
     
     // Clean up any input parameters
@@ -178,25 +184,6 @@ class Router
         return $uri;
     }
 
-    public function getRequestHeaders()
-    {
-        // getallheaders available, use that
-        if (function_exists('getallheaders')) 
-        {
-            return getallheaders();
-        }
-        // getallheaders not available: manually extract 'm
-        $headers = array();
-        foreach ($_SERVER as $name => $value) 
-        {
-            if ((substr($name, 0, 5) == 'HTTP_') || ($name == 'CONTENT_TYPE') || ($name == 'CONTENT_LENGTH')) 
-            {
-                $headers[str_replace(array(' ', 'Http'), array('-', 'HTTP'), ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = Input::sanitize($value);
-            }
-        }
-        return $headers;
-    }
-
     public function getRequestMethod()
     {
         // Take the method as found in $_SERVER
@@ -210,7 +197,7 @@ class Router
         } // If it's a POST request, check for a method override header
         elseif ( Input::server('REQUEST_METHOD') == 'POST') 
         {
-            $headers = $this->getRequestHeaders();
+            $headers = Input::serverGetHeaders();
             if (isset($headers['x-http-method-override']) && in_array($headers['x-http-method-override'], array('PUT', 'DELETE', 'PATCH'))) 
             {
                 $method = $headers['x-http-method-override'];

@@ -1,8 +1,8 @@
 <?php
 namespace Ridmic\Core;
 
-include_once "core/debug.php";
-include_once "core/object.php";
+include_once "debug.php";
+include_once "object.php";
 
 class Dispatcher extends Object
 {
@@ -39,12 +39,17 @@ class Dispatcher extends Object
     {
         Debug::traceEnterFunc();
         
-        Debug::debug("Handling (before):" );
+        $responseCode = true;
+        if ( $this->router->before()->hasRoutes() )
+        {
+            Debug::debug("Handling (before):" );
 
-        // BEFORE : Call all handlers (blockers/massagers/modifiers/etc...)
-        $matches      = $this->router->before()->match( $method, $uri );
-        $responseCode = $this->_handle($matches, $method, $uri);
-        if ( $responseCode )
+            // BEFORE : Call all handlers (blockers/massagers/modifiers/etc...)
+            $matches      = $this->router->before()->match( $method, $uri );
+            $responseCode = $this->_handle($matches, $method, $uri);
+        }
+        
+        if ( $responseCode && $this->router->route()->hasRoutes())
         {
             Debug::debug("Handling (route):" );
             
@@ -57,11 +62,14 @@ class Dispatcher extends Object
                 {
                     // AFTER : Call all handlers (post processing)
                     
-                    Debug::debug("Handling (after):" );
-                    
                     // We process 'afters' but currently ignore any reponse as the 'deed' has already been done
-                    $matches = $this->router->after()->match( $method, $uri );
-                    $this->_handle($matches, $method, $uri) ;   
+                    if ( $this->router->after()->hasRoutes() )
+                    {
+                        Debug::debug("Handling (after):" );
+                    
+                        $matches = $this->router->after()->match( $method, $uri );
+                        $this->_handle($matches, $method, $uri) ;
+                    }
                 }
             }
         }

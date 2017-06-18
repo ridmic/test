@@ -1,5 +1,5 @@
 <?php
-namespace Ridmic\Core;
+namespace Ridmic\Core\Utils;
 
 class Input
 {
@@ -27,6 +27,24 @@ class Input
     public static function server( $name )          { return filter_var( $_SERVER[$name], FILTER_SANITIZE_STRING ); }
     public static function serverRaw( $name )       { return $_SERVER[$name]; }
     public static function serverEncoded( $name )   { return filter_input( INPUT_SERVER, $name, FILTER_SANITIZE_ENCODED );  }
+    public static function serverGetHeaders()
+    {
+        // getallheaders available, use that
+        if (function_exists('getallheaders')) 
+        {
+            return getallheaders();
+        }
+        // getallheaders not available: manually extract 'm
+        $headers = array();
+        foreach ($_SERVER as $name => $value) 
+        {
+            if ((substr($name, 0, 5) == 'HTTP_') || ($name == 'CONTENT_TYPE') || ($name == 'CONTENT_LENGTH')) 
+            {
+                $headers[str_replace(array(' ', 'Http'), array('-', 'HTTP'), ucwords(strtolower(str_replace('_', ' ', substr($name, 5)))))] = Input::sanitize($value);
+            }
+        }
+        return $headers;
+    }
 
     // Generic
     public static function sanitize( $value )       { return filter_var( $value, FILTER_SANITIZE_STRING ); }

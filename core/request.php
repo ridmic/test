@@ -1,10 +1,10 @@
 <?php
 namespace Ridmic\Core;
 
-include_once "core/debug.php";
-include_once "core/object.php";
+include_once "debug.php";
+include_once "object.php";
 
-class Request extends Object 
+class Requestxxx extends Object 
 {
     const   PARAM_TOKEN     = '_token';
     const   PARAM_METHOD    = '_method';

@@ -1,0 +1,13 @@
+allow from all
+
+Options -Multiviews
+
+RewriteEngine On
+RewriteBase /
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+# Home
+#RewriteRule ^(.*)$ index.php/$1 [NC,L]
+# C9
+RewriteRule ^(.*)$ /public/index.php/$1 [NC,L]

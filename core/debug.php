@@ -50,7 +50,21 @@ class Debug
     
     static function write( $msg ) 
     { 
-      self::_write($msg, self::DBG_ALWAYS); 
+      if ( self::DBG_ALWAYS <= self::$level )
+      {
+        $b = debug_backtrace(false,1);
+        $f = count($b) >= 1 ? $b[0]['function'] : '-unknown-';
+        $v = count($b) >= 1 ? $b[0]["args"] : array();
+
+        $file   = count($b) >= 1 ? basename($b[0]['file']) : '-unknown-';
+        $line   = count($b) >= 1 ? $b[0]['line'] : '-unknown-';
+        $detail = "{ $file @ $line }";
+          
+        array_walk( $v, function(&$value, $key) { $value = print_r($value, true); } );
+        array_shift($v);
+        $msg = vsprintf( $msg, $v );
+        self::_write( "$msg : $detail", DBG_ALWAYS );
+      }
     }
 
     static function debug( $msg )
