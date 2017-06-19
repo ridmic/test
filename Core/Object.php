@@ -1,7 +1,7 @@
 <?php
 namespace Ridmic\Core;
 
-include_once "debug.php";
+include_once "Debug.php";
 
 class Object
 {

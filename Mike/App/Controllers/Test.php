@@ -1,7 +1,7 @@
 <?php
-namespace Ridmic\App;
+namespace Ridmic\Mike;
 
-require_once __DIR__ . "/../../core/controller.php";
+require_once __DIR__ . "/../../../Core/Controller.php";
 
 use Ridmic\Core as Core;
 
@@ -9,7 +9,7 @@ class TestController extends Core\Controller
 {
     public function user( $id=0)
     {
-        Core\Debug::write( "---> Called: myController@test($id)!" );
+        Core\Debug::write( "---> Called: TestController@test($id)!" );
         return true;
     } 
 

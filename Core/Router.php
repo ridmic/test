@@ -1,9 +1,9 @@
 <?php
 namespace Ridmic\Core;
 
-include_once "utils/input.php";
-include_once "debug.php";
-include_once "object.php";
+include_once "Utils/Input.php";
+include_once "Debug.php";
+include_once "Object.php";
 
 use \Ridmic\Core\Utils\Input    as Input;
 

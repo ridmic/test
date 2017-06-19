@@ -1,9 +1,9 @@
 <?php
 namespace Ridmic\Core;
 
-require_once "utils/config.php";
-require_once "router.php";
-require_once "dispatcher.php";
+require_once "Utils/Config.php";
+require_once "Router.php";
+require_once "Dispatcher.php";
 
 class App extends Object
 {
@@ -20,11 +20,11 @@ class App extends Object
     public function __construct( $name )
     {
         parent::__construct();
-        $this->setName( $name );
+        $this->setName( self::toClassName($name) );
     }
     
    // Call this once you have set up the app to initialise it
-    public function init( $config = 'application' )
+    public function init( $config = 'Application' )
     {
         // Pull in our config
         $this->appConfig = new Utils\Config;
@@ -41,13 +41,15 @@ class App extends Object
     }    
     
 
-    public function pathToApp( $name, $ext='.php' )         { return $this->makePath( array( $this->rootPath, 'app', $name.$ext) ); }
-    public function pathToConfig( $name, $ext='.ini' )      { return $this->makePath( array( $this->rootPath, 'config', $name.$ext) ); }
-    public function pathToLanguage( $name, $ext='.php' )    { return $this->makePath( array( $this->rootPath, 'language', $this->language(), $name.$ext) ); }
-    public function pathToPublic( $name, $ext='.php' )      { return $this->makePath( array( $this->rootPath, 'public', $name.$ext) ); }
-    public function urlRoot( $name )                        { return $this->makePath( array( $this->rootURL, $name )); }
-    public function pathRoot( $name )                       { return $this->makePath( array( $this->rootPath, $name )); }
+    public function appRoot()                               { return $this->makePath( array( $this->rootPath, $this->name, 'App') ); }
+    public function urlRoot()                               { return $this->makePath( array( $this->rootURL )); }
+    public function pathRoot()                              { return $this->makePath( array( $this->rootPath )); }
 
+    public function pathToApp( $name, $ext='.php' )         { return $this->makePath( array( $this->appRoot(), $name.$ext) ); }
+    public function pathToConfig( $name, $ext='.ini' )      { return $this->makePath( array( $this->rootPath,  $this->name, 'Config', $name.$ext) ); }
+    public function pathToLanguage( $name, $ext='.php' )    { return $this->makePath( array( $this->rootPath,  $this->name, 'Language', $this->language(), $name.$ext) ); }
+    public function pathToPublic( $name, $ext='.php' )      { return $this->makePath( array( $this->rootPath,  $this->name, 'Public', $name.$ext) ); }
+    
     public function isTesting()                             { return $this->testing; }
 
     public function setName( $name )                        { $this->name = $name; return $this; }
@@ -116,10 +118,10 @@ class App extends Object
 class MvcApp extends App
 {
     // Helpers
-    public function pathToView( $name, $ext='.php' )        { return $this->makePath( array( $this->rootPath, 'app/views', $name.$ext) ); }
-    public function pathToController( $name, $ext='.php' )  { return $this->makePath( array( $this->rootPath, 'app/controllers', $name.$ext) ); }
-    public function pathToModel( $name, $ext='.php' )       { return $this->makePath( array( $this->rootPath, 'app/models', $name.$ext) ); }
-    public function pathToLanguage( $name, $ext='.php' )    { return $this->makePath( array( $this->rootPath, 'app/language', $name.$ext) ); }
+    public function pathToView( $name, $ext='.php' )        { return $this->makePath( array( $this->appRoot(), 'Views', $name.$ext) ); }
+    public function pathToController( $name, $ext='.php' )  { return $this->makePath( array( $this->appRoot(), 'Controllers', $name.$ext) ); }
+    public function pathToModel( $name, $ext='.php' )       { return $this->makePath( array( $this->appRoot(), 'Models', $name.$ext) ); }
+    public function pathToLanguage( $name, $ext='.php' )    { return $this->makePath( array( $this->appRoot(), 'Language', $name.$ext) ); }
 
 }
 
@@ -165,7 +167,7 @@ class AppFactory extends Object
             if ( file_exists($file))
             {
                 require_once $file;
-                $class      = "\\Ridmic\\App\\".self::toClassName($controller).'Controller';
+                $class      = "\\Ridmic\\".$app->name()."\\".self::toClassName($controller).'Controller';
                 Debug::debug("CONTROLLER (CLASS): %s", "".$class );
                 if ( class_exists($class) )
                 {

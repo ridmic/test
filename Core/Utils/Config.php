@@ -30,12 +30,15 @@ class Config
     {
         if ( $filename != $this->filename )
         {
-            $config = $this->parse_ini_file_extended( $filename );
-            if ( $config !== false )
+            if ( file_exists($filename) )
             {
-                $this->config   = $config;
-                $this->filename = $filename;
-                return true;
+                $config = $this->parse_ini_file_extended( $filename );
+                if ( $config !== false )
+                {
+                    $this->config   = $config;
+                    $this->filename = $filename;
+                    return true;
+                }
             }
             return false;
         }

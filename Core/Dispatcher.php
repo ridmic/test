@@ -1,8 +1,8 @@
 <?php
 namespace Ridmic\Core;
 
-include_once "debug.php";
-include_once "object.php";
+include_once "Debug.php";
+include_once "Object.php";
 
 class Dispatcher extends Object
 {
