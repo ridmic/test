@@ -84,6 +84,11 @@ class App extends Object
         return $this->dispatcher()->run();
     }
 
+    public function runRest()
+    {
+        return $this->dispatcher()->runRest();
+    }
+
     // Helpers
     public function config( $index, $default=null )
     {

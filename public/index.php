@@ -49,11 +49,10 @@ Core\Debug::write('START');
 // ========================================================
 
 
-
-
 $myApp = Core\AppFactory::buildMvc( 'mike' );
 $myApp->init();
-$myApp->run();
+$responseCode = $myApp->runRest();
+echo "".$responseCode;
 
 
 Core\Debug::write('END');

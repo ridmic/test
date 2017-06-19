@@ -202,6 +202,10 @@ class Router
             {
                 $method = $headers['x-http-method-override'];
             }
+            elseif (isset($headers['x-http-method']) && in_array($headers['x-http-method'], array('PUT', 'DELETE', 'PATCH'))) 
+            {
+                $method = $headers['x-http-method'];
+            }
         }
         return $method;
     }

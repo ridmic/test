@@ -3,6 +3,7 @@ namespace Ridmic\Core;
 
 include_once "Debug.php";
 include_once "Object.php";
+include_once "ResponseCode.php";
 
 class Dispatcher extends Object
 {
@@ -34,7 +35,42 @@ class Dispatcher extends Object
         Debug::traceLeaveFunc($responseCode);
         return $responseCode;
     }
+    
+    public function runRest( )
+    {
+        Debug::traceEnterFunc();
+        
+        // Default Response
+        $responseCode = new ResponseCode( 404 );    
 
+        // Define which method we need to handle
+        $method = is_null($method) ? $this->router->getRequestMethod() : $method;
+        Debug::debug("Method: %s", $method );
+ 
+        // Only process the allowed verbs
+        if ( in_array( $method, array('GET', 'POST', 'PUT', 'DELETE', 'PATCH') ) )
+        {
+            // The current page URL
+            $uri = is_null($uri) ? $this->router->getCurrentUri() : $uri;
+            Debug::debug("URI: %s", $uri );
+    
+            // Handle the request
+            if ( 0 /*$this->handle($method, $uri )*/ )
+            {
+                $responseCode = new ResponseCode( 200 );    
+            }
+        }
+        else
+        {
+            $responseCode = new ResponseCode( 400, "Unsupported Verb [$method]" );    
+        }
+        // Close of the request
+        $this->router->closeRequestMethod();
+
+        Debug::traceLeaveFunc($responseCode);
+        return $responseCode;
+    }
+    
     public function handle($method, $uri )
     {
         Debug::traceEnterFunc();
