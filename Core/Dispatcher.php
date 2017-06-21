@@ -22,51 +22,24 @@ class Dispatcher extends Object
         $method = is_null($method) ? $this->router->getRequestMethod() : $method;
         Debug::debug("Method: %s", $method );
  
-        // The current page URL
-        $uri = is_null($uri) ? $this->router->getCurrentUri() : $uri;
-        Debug::debug("URI: %s", $uri );
-
-        // Handle the request
-        $responseCode = $this->handle($method, $uri );
-        
-        // Close of the request
-        $this->router->closeRequestMethod();
-        
-        Debug::traceLeaveFunc($responseCode);
-        return $responseCode;
-    }
-    
-    public function runRest( )
-    {
-        Debug::traceEnterFunc();
-        
-        // Default Response
-        $responseCode = new ResponseCode( 404 );    
-
-        // Define which method we need to handle
-        $method = is_null($method) ? $this->router->getRequestMethod() : $method;
-        Debug::debug("Method: %s", $method );
- 
         // Only process the allowed verbs
-        if ( in_array( $method, array('GET', 'POST', 'PUT', 'DELETE', 'PATCH') ) )
+        if ( $this->router->allowedMethod($method) )
         {
             // The current page URL
             $uri = is_null($uri) ? $this->router->getCurrentUri() : $uri;
             Debug::debug("URI: %s", $uri );
     
             // Handle the request
-            if ( 0 /*$this->handle($method, $uri )*/ )
-            {
-                $responseCode = new ResponseCode( 200 );    
-            }
+            $responseCode = $this->handle($method, $uri );
         }
         else
         {
             $responseCode = new ResponseCode( 400, "Unsupported Verb [$method]" );    
         }
+        
         // Close of the request
         $this->router->closeRequestMethod();
-
+        
         Debug::traceLeaveFunc($responseCode);
         return $responseCode;
     }
@@ -75,7 +48,7 @@ class Dispatcher extends Object
     {
         Debug::traceEnterFunc();
         
-        $responseCode = true;
+        $responseCode = new ResponseCode( ResponseCode::CODE_OK );
         if ( $this->router->before()->hasRoutes() )
         {
             Debug::debug("Handling (before):" );
@@ -85,28 +58,39 @@ class Dispatcher extends Object
             $responseCode = $this->_handle($matches, $method, $uri);
         }
         
-        if ( $responseCode && $this->router->route()->hasRoutes())
+        if ( $responseCode->isOK() )
         {
-            Debug::debug("Handling (route):" );
-            
-            // ROUTES : Call first matched handler only (handlers)
-            $matches = $this->router->route()->match( $method, $uri, false );
-            if ( count($matches) )
+            if ( $this->router->route()->hasRoutes())
             {
-                $responseCode = $this->_handle($matches, $method, $uri );
-                if ( $responseCode )
+                Debug::debug("Handling (route):" );
+                
+                // ROUTES : Call first matched handler only (handlers)
+                $matches = $this->router->route()->match( $method, $uri, false );
+                if ( count($matches) )
                 {
-                    // AFTER : Call all handlers (post processing)
-                    
-                    // We process 'afters' but currently ignore any reponse as the 'deed' has already been done
-                    if ( $this->router->after()->hasRoutes() )
+                    $responseCode = $this->_handle( $matches, $method, $uri );
+                    if ( $responseCode->isOK() )
                     {
-                        Debug::debug("Handling (after):" );
-                    
-                        $matches = $this->router->after()->match( $method, $uri );
-                        $this->_handle($matches, $method, $uri) ;
+                        // AFTER : Call all handlers (post processing)
+                        
+                        // We process 'afters' but currently ignore any reponse as the 'deed' has already been done
+                        if ( $this->router->after()->hasRoutes() )
+                        {
+                            Debug::debug("Handling (after):" );
+                        
+                            $matches = $this->router->after()->match( $method, $uri );
+                            $this->_handle($matches, $method, $uri) ;
+                        }
                     }
                 }
+                else
+                {
+                    $responseCode = new ResponseCode( ResponseCode::CODE_NOTFOUND );
+                }
+            }
+            else
+            {
+                $responseCode = new ResponseCode( ResponseCode::CODE_NOTFOUND );
             }
         }
         Debug::traceLeaveFunc($responseCode);
@@ -120,16 +104,16 @@ class Dispatcher extends Object
         {
             Debug::debug("Handling: %s", $match );
             
-            $fn       = isset( $match['fn'] )     ? $match['fn']      : 'unknown';
-            $params   = isset( $match['params'] ) ? $match['params']  : [];
-            $response = $this->call($fn, $params);
-            if ( !$response )
+            $fn           = isset( $match['fn'] )     ? $match['fn']      : 'unknown';
+            $params       = isset( $match['params'] ) ? $match['params']  : [];
+            $responseCode = $this->call($fn, $params);
+            if ( ! $responseCode->isOK() )
             {
                 // Keep going until we run out of matches or one of them returns a non-true value
                 break;
             }
         }
-        return $response;   
+        return $responseCode;   
     }
 
     protected function call( $fn, $params )
@@ -141,9 +125,19 @@ class Dispatcher extends Object
                 Debug::debug( 'Dispatching to: %s(%s)', $handler, implode( ',', $params ) );
             else
                 Debug::debug( 'Dispatching to: %s@%s(%s)', "".$handler[0], $handler[1], implode( ',', $params ) );
-            return call_user_func_array($handler, $params );
+                
+            // Call our handler and get its response
+            $responseCode = call_user_func_array( $handler, $params );
+
+            // Ensure $responseCode responses are a valid response code
+            if ( ! $responseCode instanceof ResponseCode )
+            {
+                $responseCode = $responseCode === true ? new ResponseCode( ResponseCode::CODE_OK )
+                                                       : new ResponseCode( ResponseCode::CODE_NOTACCEPTABLE );
+            }
+            return $responseCode;   
         }
-        return false;
+        return new ResponseCode( ResponseCode::CODE_INTERNALERROR );
     }
 
     protected function makeHandler($fn)

@@ -3,6 +3,7 @@ namespace Ridmic\Core;
 
 include_once "Debug.php";
 include_once "Object.php";
+include_once "ResponseCode.php";
 
 class Controller extends Object
 {
@@ -15,7 +16,12 @@ class Controller extends Object
     public function index()
     {
         Debug::write('Hello World!');
-        return true;
+        return $this->makeResponse( ResponseCode::CODE_OK );
+    }
+    
+    protected function makeResponse( $code, $response )
+    {
+        return new ResponseCode( $code, $response );
     }
     
     protected function registerRoutes( Router $router )

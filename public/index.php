@@ -2,13 +2,14 @@
 //include "header.php";
 
 require_once __DIR__ . "/../Core/App.php";
+include_once __DIR__ . "/../Core/Responder.php";
 
 use Ridmic\Core as Core;
 
-Core\Debug::level( Core\Debug::DBG_DEBUG );
+Core\Debug::level( Core\Debug::DBG_ALWAYS );
 Core\Debug::showDateTime( false );
 
-Core\Debug::write('START');
+Core\Debug::debug('START');
  
 
 // ========================================================
@@ -16,7 +17,7 @@ Core\Debug::write('START');
 // ========================================================
 //$myApp = Core\AppFactory::build( 'test' );
 //$myApp->init();
-//$myApp->router()->route()->add( 'GET', '/{:any}', function () { echo 'HELLO!'; } );        
+//$myApp->router()->route()->add( 'GET', '/{:any}', function () { echo '<html><head></head><body><h1>GOODBYE!</h1></body></html>'; } );        
 //$myApp->run();
 // ========================================================
 
@@ -48,14 +49,13 @@ Core\Debug::write('START');
 //$myApp->run();
 // ========================================================
 
-
-$myApp = Core\AppFactory::buildMvc( 'mike' );
+$responder = new Core\Responder( Core\Responder::TYPE_JSON);
+$myApp     = Core\AppFactory::buildMvc( 'roll_it:v1' );
 $myApp->init();
-$responseCode = $myApp->runRest();
-echo "".$responseCode;
+$responder->respond( $myApp->run() );
 
 
-Core\Debug::write('END');
+Core\Debug::debug('END');
 
 //include "footer.php";
 ?>

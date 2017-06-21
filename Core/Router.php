@@ -24,7 +24,12 @@ class RouteList extends Object
     protected   $exactMatch     = true;
     protected   $caseMatch      = false;
     
-    function add( $methods, $pattern, $fn )
+    public function allowedMethod( $method ) 
+    {
+        return in_array($method, explode('|', $this->allowedMethods));
+    }
+
+    public function add( $methods, $pattern, $fn )
     {
         Debug::traceEnterFunc();
 
@@ -38,7 +43,7 @@ class RouteList extends Object
         $methods = explode('|', $methods);
         foreach ( $methods as $method ) 
         {
-            if ( in_array($method, explode('|', $this->allowedMethods)) )
+            if ( $this->allowedMethod($method) )
             {
                 $this->routes[$method][] = array( 'pattern' => $pattern, 'fn' => $fn );
                 
@@ -165,6 +170,11 @@ class Router
         $this->after    = new RouteList;      // #3 : All of the matches here get called
     }
     
+    public function allowedMethod( $method ) 
+    {
+        return $this->routes->allowedMethod( $method );
+    }
+
     public function before()    {  return $this->before; }
     public function route()     {  return $this->routes; }
     public function after()     {  return $this->after; }

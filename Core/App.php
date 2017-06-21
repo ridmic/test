@@ -8,6 +8,7 @@ require_once "Dispatcher.php";
 class App extends Object
 {
     protected $name                 = 'unknown';
+    protected $version              = '';
     protected $rootPath             = '';
     protected $rootURL              = '';
     protected $language             = 'en';
@@ -20,6 +21,13 @@ class App extends Object
     public function __construct( $name )
     {
         parent::__construct();
+        
+        $bits = explode( ':', $name );
+        if ( count($bits) == 2 )
+        {
+            $name          = $bits[0];
+            $this->version = $bits[1];
+        }
         $this->setName( self::toClassName($name) );
     }
     
@@ -41,19 +49,21 @@ class App extends Object
     }    
     
 
-    public function appRoot()                               { return $this->makePath( array( $this->rootPath, $this->name, 'App') ); }
-    public function urlRoot()                               { return $this->makePath( array( $this->rootURL )); }
-    public function pathRoot()                              { return $this->makePath( array( $this->rootPath )); }
+    public function appRoot()                               { return $this->makePath( array( $this->rootPath, $this->nameAsPath(), 'App') ); }
+    public function urlRoot()                               { return $this->rootURL; }
+    public function pathRoot()                              { return $this->rootPath; }
 
     public function pathToApp( $name, $ext='.php' )         { return $this->makePath( array( $this->appRoot(), $name.$ext) ); }
-    public function pathToConfig( $name, $ext='.ini' )      { return $this->makePath( array( $this->rootPath,  $this->name, 'Config', $name.$ext) ); }
-    public function pathToLanguage( $name, $ext='.php' )    { return $this->makePath( array( $this->rootPath,  $this->name, 'Language', $this->language(), $name.$ext) ); }
-    public function pathToPublic( $name, $ext='.php' )      { return $this->makePath( array( $this->rootPath,  $this->name, 'Public', $name.$ext) ); }
+    public function pathToConfig( $name, $ext='.ini' )      { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Config', $name.$ext) ); }
+    public function pathToLanguage( $name, $ext='.php' )    { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Language', $this->language(), $name.$ext) ); }
+    public function pathToPublic( $name, $ext='.php' )      { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Public', $name.$ext) ); }
     
     public function isTesting()                             { return $this->testing; }
 
     public function setName( $name )                        { $this->name = $name; return $this; }
     public function name()                                  { return $this->name; }
+    public function nameAsPath()                            { return trim( implode( '/', [$this->name, $this->version]), '/' ); }
+    public function nameAsUrl()                             { return trim( implode( '\\', [$this->name, $this->version]), '\\' ); }
  
     public function setLanguage( $code )                    { $this->language = $code; return $this; }
     public function language()                              { return $this->language; }
@@ -118,6 +128,7 @@ class App extends Object
         }
         return  Utils\Input::validIP($ipaddress);
     }
+    
 }
 
 class MvcApp extends App
@@ -133,6 +144,8 @@ class MvcApp extends App
 
 class AppFactory extends Object
 {
+    public static function rootPath()   { return __DIR__.'/../'; }
+    
     public static function build( $name )
     {
         Debug::traceEnterFunc();
@@ -142,7 +155,7 @@ class AppFactory extends Object
         $app->setRouter( new Router() );
         $app->setDispatcher( new Dispatcher( $app->router() ) );
         
-        $app->setRootPath(__DIR__.'/../');
+        $app->setRootPath(self::rootPath());
         
         Debug::traceLeaveFunc($app);
         return $app;
@@ -157,7 +170,7 @@ class AppFactory extends Object
         $app->setRouter( new Router() );
         $app->setDispatcher( new Dispatcher( $app->router() ) );
         
-        $app->setRootPath(__DIR__.'/../');
+        $app->setRootPath(self::rootPath());
  
         $uri        = $app->router()->getCurrentUri();
         Debug::debug("URI: %s", $uri );
@@ -172,7 +185,7 @@ class AppFactory extends Object
             if ( file_exists($file))
             {
                 require_once $file;
-                $class      = "\\Ridmic\\".$app->name()."\\".self::toClassName($controller).'Controller';
+                $class      = "\\Ridmic\\".$app->name()."\\".$controller.'Controller';
                 Debug::debug("CONTROLLER (CLASS): %s", "".$class );
                 if ( class_exists($class) )
                 {

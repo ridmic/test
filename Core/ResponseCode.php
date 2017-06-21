@@ -7,7 +7,11 @@ include_once "Object.php";
 class ResponseCode extends Object
 {
     const       CODE_OK                     = 200;
+    const       CODE_CREATED                = 201;
+    const       CODE_NOTMODIFIED            = 304;
+    const       CODE_BADREQUEST             = 401;
     const       CODE_UNAUTHORIZED           = 401;
+    const       CODE_FORBIDDEN              = 403;
     const       CODE_NOTFOUND               = 404;
     const       CODE_NOTALLOWED             = 405;
     const       CODE_NOTACCEPTABLE          = 406;

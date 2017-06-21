@@ -9,8 +9,9 @@ class TestController extends Core\Controller
 {
     public function user( $id=0)
     {
-        Core\Debug::write( "---> Called: TestController@test($id)!" );
-        return true;
+        Core\Debug::debug( "---> Called: TestController@test($id)!" );
+        
+        return $this->makeResponse( Core\ResponseCode::CODE_OK, [ 'name1' => 'value1', 'name2' => [ 'value11', 'value12'] , 'name3' => 'value3' ] );
     } 
 
     // Overrides
