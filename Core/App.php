@@ -22,16 +22,10 @@ class App extends Object
     {
         parent::__construct();
         
-        $bits = explode( ':', $name );
-        if ( count($bits) == 2 )
-        {
-            $name          = $bits[0];
-            $this->version = $bits[1];
-        }
         $this->setName( self::toClassName($name) );
     }
     
-   // Call this once you have set up the app to initialise it
+    // Call this once you have set up the app to initialise it
     public function init( $config = 'Application' )
     {
         // Pull in our config
@@ -43,8 +37,9 @@ class App extends Object
         date_default_timezone_set($timezone);
         
         // Defaults
-        $this->language = $this->appConfig->get('language', $this->language );
-        $this->testing  = $this->appConfig->get('testing', $this->testing );
+        $this->language     = $this->appConfig->get('language', $this->language );
+        $this->testing      = $this->appConfig->get('testing', $this->testing );
+
         $this->setRootUrl( $this->appConfig->get('testing', $this->testing ) );        
     }    
     
@@ -62,6 +57,9 @@ class App extends Object
 
     public function setName( $name )                        { $this->name = $name; return $this; }
     public function name()                                  { return $this->name; }
+    public function setVersion( $version )                  { $this->version = $version; return $version; }
+    public function version()                               { return $this->version; }
+    public function isVersioned()                           { return $this->isVersioned; }
     public function nameAsPath()                            { return trim( implode( '/', [$this->name, $this->version]), '/' ); }
     public function nameAsUrl()                             { return trim( implode( '\\', [$this->name, $this->version]), '\\' ); }
  
@@ -135,10 +133,11 @@ class MvcApp extends App
 {
     // Helpers
     public function pathToView( $name, $ext='.php' )        { return $this->makePath( array( $this->appRoot(), 'Views', $name.$ext) ); }
-    public function pathToController( $name, $ext='.php' )  { return $this->makePath( array( $this->appRoot(), 'Controllers', $name.$ext) ); }
+    public function pathToController( $name, $ext='.php' )  { return $this->makePath( array( $this->appRoot(), 'Controllers', self::toClassName($name).$ext) ); }
     public function pathToModel( $name, $ext='.php' )       { return $this->makePath( array( $this->appRoot(), 'Models', $name.$ext) ); }
     public function pathToLanguage( $name, $ext='.php' )    { return $this->makePath( array( $this->appRoot(), 'Language', $name.$ext) ); }
 
+    public function classOfController( $name )              { return "\\Ridmic\\".$this->name()."\\".self::toClassName($name).'Controller'; }
 }
 
 
@@ -146,12 +145,13 @@ class AppFactory extends Object
 {
     public static function rootPath()   { return __DIR__.'/../'; }
     
-    public static function build( $name )
+    public static function build( $name, $config = 'Application' )
     {
         Debug::traceEnterFunc();
         
         $app = new App( $name );
-
+        
+        $app->init( $config );
         $app->setRouter( new Router() );
         $app->setDispatcher( new Dispatcher( $app->router() ) );
         
@@ -160,13 +160,14 @@ class AppFactory extends Object
         Debug::traceLeaveFunc($app);
         return $app;
     }
-    
-    public static function buildMvc( $name )
+
+    public static function buildMvc( $name, $versioned = false, $config = 'Application' )
     {
         Debug::traceEnterFunc();
         
         $app = new MvcApp( $name );
 
+        $app->init( $config );
         $app->setRouter( new Router() );
         $app->setDispatcher( new Dispatcher( $app->router() ) );
         
@@ -179,13 +180,13 @@ class AppFactory extends Object
         if ( count($bits) )
         {
             $controller = array_shift($bits);
-            $controller = self::toClassName($controller);
+            $app->setVersion( $versioned ? array_shift($bits) : '' );
             $file       = $app->pathToController( $controller );
             Debug::debug("CONTROLLER (FILE): %s", $file );
             if ( file_exists($file))
             {
                 require_once $file;
-                $class      = "\\Ridmic\\".$app->name()."\\".$controller.'Controller';
+                $class      = $app->classOfController($controller);
                 Debug::debug("CONTROLLER (CLASS): %s", "".$class );
                 if ( class_exists($class) )
                 {

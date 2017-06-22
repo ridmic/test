@@ -12,14 +12,14 @@ class RollItController extends Core\Controller
         $rolls = [];
         $dice  = min ( $dice, 10 );
         for ( $i=1 ; $i <= $dice ; $i++ )
-            $rolls[ "Roll $i"] = rand(1, 6);
+            $rolls[ "Roll-$i"] = rand(1, 6);
             
         return $this->makeResponse( Core\ResponseCode::CODE_OK , $rolls );
     } 
 
     // Overrides
-    protected function registerRoutes( Core\Router $router )
+    protected function registerRoutes()
     {
-        $router->route()->add( 'GET', '/roll_it/v2/roll/{:id}', [$this, 'roll' ] );        
+        $this->addRoute( 'GET', '/roll_it/v2/roll/{:id}', [$this, 'roll' ] );        
     }
 }

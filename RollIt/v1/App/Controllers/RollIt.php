@@ -18,8 +18,8 @@ class RollItController extends Core\Controller
     } 
 
     // Overrides
-    protected function registerRoutes( Core\Router $router )
+    protected function registerRoutes()
     {
-        $router->route()->add( 'GET', '/roll_it/v1/roll/{:id}', [$this, 'roll' ] );        
+        $this->addRoute( 'GET', '/roll_it/v1/roll/{:id}', [$this, 'roll' ] );        
     }
 }

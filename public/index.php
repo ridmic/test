@@ -6,7 +6,7 @@ include_once __DIR__ . "/../Core/Responder.php";
 
 use Ridmic\Core as Core;
 
-Core\Debug::level( Core\Debug::DBG_ALWAYS );
+Core\Debug::level( Core\Debug::DBG_DEBUG );
 Core\Debug::showDateTime( false );
 
 Core\Debug::debug('START');
@@ -16,8 +16,7 @@ Core\Debug::debug('START');
 // We can create simple closure based app
 // ========================================================
 //$myApp = Core\AppFactory::build( 'test' );
-//$myApp->init();
-//$myApp->router()->route()->add( 'GET', '/{:any}', function () { echo '<html><head></head><body><h1>GOODBYE!</h1></body></html>'; } );        
+//$myApp->router()->route()->add( 'GET', '/{:any}', function () { echo 'HELLO!'; } );        
 //$myApp->run();
 // ========================================================
 
@@ -26,7 +25,6 @@ Core\Debug::debug('START');
 // ========================================================
 //function HelloWorld() { echo 'HELLO!'; };
 //$myApp = Core\AppFactory::build( 'test' );
-//$myApp->init();
 //$myApp->router()->route()->add( 'GET', '/{:any}', 'HelloWorld' );        
 //$myApp->run();
 // ========================================================
@@ -36,7 +34,6 @@ Core\Debug::debug('START');
 // ========================================================
 //class myClass { public function HelloWorld() { echo 'HELLO!'; } };
 //$myApp = Core\AppFactory::build( 'test' );
-//$myApp->init();
 //$myApp->router()->route()->add( 'GET', '/{:any}', 'myClass@HelloWorld' );        
 //$myApp->run();
 // ========================================================
@@ -45,15 +42,12 @@ Core\Debug::debug('START');
 // We can create MVC based app ( handles: /test/user/{:id} )
 // ========================================================
 //$myApp = Core\AppFactory::buildMvc( 'test' );
-//$myApp->init();
 //$myApp->run();
 // ========================================================
 
-$responder = new Core\Responder( Core\Responder::TYPE_JSON);
-$myApp     = Core\AppFactory::buildMvc( 'roll_it:v1' );
-$myApp->init();
+$responder = new Core\Responder( Core\Responder::TYPE_HTML);
+$myApp     = Core\AppFactory::buildMvc( 'roll_it', true );
 $responder->respond( $myApp->run() );
-
 
 Core\Debug::debug('END');
 

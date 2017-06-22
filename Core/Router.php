@@ -162,8 +162,8 @@ class Router
     protected   $routes     = null;
     protected   $before     = null;
     protected   $after      = null;
-    
-    public function __construct()
+
+    public function __construct( $versioned = false )
     {
         $this->before   = new RouteList;      // #1 : All of the matches here get called
         $this->routes   = new RouteList;      // #2 : Only the first match of this gets called

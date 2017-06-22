@@ -7,10 +7,14 @@ include_once "ResponseCode.php";
 
 class Controller extends Object
 {
+    protected $router = null;
+    
     public function __construct( Router $router )
     {
         parent::__construct();
-        $this->registerRoutes( $router );
+        
+        $this->router = $router;
+        $this->registerRoutes();
     }
     
     public function index()
@@ -24,8 +28,12 @@ class Controller extends Object
         return new ResponseCode( $code, $response );
     }
     
-    protected function registerRoutes( Router $router )
+    protected function registerRoutes()
     {
-        $router->route()->add( 'ALL', '{:any}', [$this, 'index' ] );        
+        $this->addRoute( 'ALL', '{:any}', [$this, 'index' ] );        
     }
+    
+    protected function addBefore( $m, $p, $c )  { $this->router->before()->add( $m, $p, $c ); }
+    protected function addRoute( $m, $p, $c )   { $this->router->route()->add( $m, $p, $c ); }
+    protected function addAfter( $m, $p, $c )   { $this->router->after()->add( $m, $p, $c ); }
 }
