@@ -20,6 +20,9 @@ class RollItController extends Core\Controller
     // Overrides
     protected function registerRoutes()
     {
-       $this->addRoute( 'GET', 'roll/{:id}', [$this, 'roll' ] );        
+        //$this->addBefore( 'ALL', '{:any}', [$this, 'block' ] );        
+        
+        
+        $this->addRoute( 'GET', 'roll/{:id}', [$this, 'roll' ] );        
     }
 }

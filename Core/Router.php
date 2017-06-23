@@ -18,7 +18,7 @@ class RouteList extends Object
                                     ':alphanum' => '([0-9a-zA-Z]+)'
                                   ];
 
-    protected   $allowedMethods = 'GET|POST|PUT|DELETE|OPTIONS|PATCH|HEAD';
+    protected   $allowedMethods = 'GET|POST|PUT|DELETE|PATCH|HEAD';
     protected   $routes         = [];
     protected   $baseRoute      = '';
     protected   $exactMatch     = true;
@@ -144,7 +144,7 @@ class RouteList extends Object
     
     
     // Clean up any input parameters
-    private function cleanInputs( $data ) 
+    public function cleanInputs( $data ) 
     {
         $clean_input = array();
         if (is_array($data)) 
@@ -167,12 +167,70 @@ class Router
     protected   $routes     = null;
     protected   $before     = null;
     protected   $after      = null;
+    protected   $args       = [];
+    protected   $argsUri    = [];
 
     public function __construct( $versioned = false )
     {
         $this->before   = new RouteList;      // #1 : All of the matches here get called
         $this->routes   = new RouteList;      // #2 : Only the first match of this gets called
         $this->after    = new RouteList;      // #3 : All of the matches here get called
+        
+        // Pull in the parameters
+        $method         = $this->getRequestMethod();
+        $this->argsUri  = $this->routes->cleanInputs($_GET);
+        $this->args     = [];
+        switch( $method )
+        {
+            // GET should be read only!
+            case 'GET':
+                break;
+            // POST ususally would map to a 'create' operation
+            case 'POST':
+                $this->args = $this->routes->cleanInputs($_POST);
+                break;
+            // DELETE ususally would map to a 'delete' operation
+            case 'DELETE':
+            // PUT ususally would map to an 'update/set' operation
+            case 'PUT':
+                // basically, we read a string from PHP's special input location,  
+                // and then parse it out into an array via parse_str... per the PHP docs:  
+                // Parses str as if it were the query string passed via a URL and sets  
+                // variables in the current scope.  
+                $body           = file_get_contents('php://input');  
+                $parameters     = [];
+                $content_type   = Input::hasServer('CONTENT_TYPE') ? Input::server('CONTENT_TYPE') : false;
+                switch($content_type) 
+                {
+                    case "application/json":
+                        $body_params = json_decode($body);
+                        if($body_params) 
+                        {
+                            foreach($body_params as $param_name => $param_value) 
+                            {
+                                $parameters[$param_name] = $param_value;
+                            }
+                        }
+                        $this->format = "json";
+                        break;
+                    case "application/x-www-form-urlencoded":
+                        parse_str($body, $postvars);
+                        foreach($postvars as $field => $value) 
+                        {
+                            $parameters[$field] = $value;
+                        }
+                        $this->format = "html";
+                        break;
+
+                    default:
+                        break;
+                }
+                $this->args = $this->routes->cleanInputs($parameters);
+                break;
+                
+            default:
+                break;
+        }
     }
     
     public function allowedMethod( $method ) 
@@ -185,7 +243,6 @@ class Router
         $this->before->setBaseRoute( $br );
         $this->routes->setBaseRoute( $br );
         $this->after->setBaseRoute( $br );
-            Debug::debug( "Base Route: %s",$br );
     }
 
     public function before()    {  return $this->before; }
@@ -230,7 +287,7 @@ class Router
                 $method = $headers['x-http-method'];
             }
         }
-        return $method;
+        return strtoupper($method);
     }
     
     public function closeRequestMethod()

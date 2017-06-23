@@ -25,10 +25,6 @@ class Dispatcher extends Object
         // Only process the allowed verbs
         if ( $this->router->allowedMethod($method) )
         {
-            // The current page URL
-            $uri = is_null($uri) ? $this->router->getCurrentUri() : $uri;
-            Debug::debug("URI: %s", $uri );
-    
             // Handle the request
             $responseCode = $this->handle($method, $uri );
         }
@@ -44,10 +40,14 @@ class Dispatcher extends Object
         return $responseCode;
     }
     
-    public function handle($method, $uri )
+    public function handle( $method, $uri )
     {
         Debug::traceEnterFunc();
         
+        // The current page URL
+        $uri = is_null($uri) ? $this->router->getCurrentUri() : $uri;
+        Debug::debug("URI: %s", $uri );
+
         $responseCode = new ResponseCode( ResponseCode::CODE_OK );
         if ( $this->router->before()->hasRoutes() )
         {

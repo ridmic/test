@@ -32,9 +32,14 @@ class Controller extends Object
         return $this->makeResponse( ResponseCode::CODE_OK );
     }
     
-    protected function makeResponse( $code, $response )
+    protected function makeResponse( $code, $response = null )
     {
         return new ResponseCode( $code, $response );
+    }
+    
+    public function block()
+    {
+        return $this->makeResponse( ResponseCode::CODE_FORBIDDEN );
     }
     
     protected function registerRoutes()

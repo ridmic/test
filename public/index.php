@@ -52,6 +52,21 @@ $responder = new Core\Responder( Core\Responder::TYPE_HTML);
 $myApp     = Core\AppFactory::buildMvc( 'roll_it', true );
 $responder->respond( $myApp->run() );
 
+// Need to build/test re-routing, arg massaging, param massaging, global handler insertion  
+
+// 1) rerouting:
+// we need to store the current uri in the dispatcher and create a reroute function to update it
+// we then need to pass the dispatcher into the controller and not the router to allow access
+
+// 2) massaging:
+// we should be able to access the variables in the router and change them
+
+// 3) insertion:
+// we should be able to insert global function into the route list
+
+// 4) Redirecting:
+// we should be able to redirect to a different page via a location header
+
 Core\Debug::debug('END');
 
 //include "footer.php";
