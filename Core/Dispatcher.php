@@ -102,8 +102,6 @@ class Dispatcher extends Object
         $response = true;
         foreach ( $matches as $match )
         {
-            Debug::debug("Handling: %s", $match );
-            
             $fn           = isset( $match['fn'] )     ? $match['fn']      : 'unknown';
             $params       = isset( $match['params'] ) ? $match['params']  : [];
             $responseCode = $this->call($fn, $params);

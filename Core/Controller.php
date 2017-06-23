@@ -7,16 +7,25 @@ include_once "ResponseCode.php";
 
 class Controller extends Object
 {
-    protected $router = null;
+    protected $app      = null;
+    protected $router   = null;        
     
-    public function __construct( Router $router )
+    public function __construct( App $app )
     {
         parent::__construct();
+    
+        $this->app      = $app;
+        $this->router   = $app->router();
+
+        // Set up our base path
+        $baseRoute = rtrim( implode( '/', [self::toURLName($this->app->name()), $this->app->version()] ), '/');
+        Debug::debug( "Base Route: %s",$baseRoute );
+        $this->router->setBaseRoute( $baseRoute );
         
-        $this->router = $router;
+        // Register our routes
         $this->registerRoutes();
     }
-    
+
     public function index()
     {
         Debug::write('Hello World!');

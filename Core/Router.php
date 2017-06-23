@@ -24,6 +24,9 @@ class RouteList extends Object
     protected   $exactMatch     = true;
     protected   $caseMatch      = false;
     
+    public function setBaseRoute( $br )     { $this->baseRoute =  '/' . trim($br, '/'); }
+    public function baseRoute( $br )        { return $this->baseRoute;  }
+    
     public function allowedMethod( $method ) 
     {
         return in_array($method, explode('|', $this->allowedMethods));
@@ -48,7 +51,7 @@ class RouteList extends Object
                 $this->routes[$method][] = array( 'pattern' => $pattern, 'fn' => $fn );
                 
                 if ( is_array($fn) )
-                  Debug::debug( "Routing: %s:%s to %s@%s'", $method, $pattern, "".$fn[0], "".$fn[1] );
+                  Debug::debug( "Routing: %s:%s to %s@%s", $method, $pattern, "".$fn[0], "".$fn[1] );
                 else
                   Debug::debug( "Routing: %s:%s to %s'", $method, $pattern, $fn );
            }
@@ -61,7 +64,8 @@ class RouteList extends Object
         Debug::traceEnterFunc();
 
         // Loop all routes
-        $matchedRoutes = [];
+        $matchedRoutes   = [];
+        $matchePatterns  = [];
         $method  = strtoupper($method);
         if ( isset($this->routes[$method]) )
         {
@@ -114,6 +118,7 @@ class RouteList extends Object
                     
                     // call the handling function with the URL parameters
                     $matched            = [ 'fn' => $route['fn'], 'params' => $this->cleanInputs($params)];
+                    $matchePatterns[]   = $pattern;
                     $matchedRoutes[]    = $matched;
 
                     // If we need to quit, then quit
@@ -127,7 +132,7 @@ class RouteList extends Object
         if ( empty($matchedRoutes) )
             Debug::debug("No Matches" );
         else
-            Debug::debug("Matched: %s", $matchedRoutes );
+            Debug::debug("Matched %s", $matchePatterns );
         
         // Return the number of routes handled
         Debug::traceLeaveFunc( $matchedRoutes );
@@ -173,6 +178,14 @@ class Router
     public function allowedMethod( $method ) 
     {
         return $this->routes->allowedMethod( $method );
+    }
+    
+    public function setBaseRoute( $br )
+    {
+        $this->before->setBaseRoute( $br );
+        $this->routes->setBaseRoute( $br );
+        $this->after->setBaseRoute( $br );
+            Debug::debug( "Base Route: %s",$br );
     }
 
     public function before()    {  return $this->before; }

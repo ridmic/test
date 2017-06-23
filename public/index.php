@@ -1,8 +1,11 @@
 <?php
 //include "header.php";
 
-require_once __DIR__ . "/../Core/App.php";
-include_once __DIR__ . "/../Core/Responder.php";
+// Pull in our framework config
+require __DIR__ . "/../Core/Config.php";
+
+require_once CORE_DIR . "App.php";
+require_once CORE_DIR . "Responder.php";
 
 use Ridmic\Core as Core;
 

@@ -191,7 +191,7 @@ class AppFactory extends Object
                 if ( class_exists($class) )
                 {
                     Debug::debug("CONTROLLER (CREATED)" );
-                    new $class( $app->router() );
+                    $controller = new $class( $app );
                 }
             }
         }

@@ -98,7 +98,7 @@ class Debug
         $line   = count($b) >= 2 ? $b[1]['line'] : '-unknown-';
         $detail = "{ $file @ $line }";
           
-        array_walk( $v, function(&$value, $key) { $value = print_r($value, true); } );
+        array_walk( $v, function(&$value, $key) { $value = print_r( $value, true); } );
         self::_write( "FUNC >>: ".get_class($this)."::$f(".implode(', ', $v).") : $detail", DBG_TRACE );
 
         self::$curIndent += 2;
