@@ -6,6 +6,7 @@ require __DIR__ . "/../Core/Config.php";
 
 require_once CORE_DIR . "App.php";
 require_once CORE_DIR . "Responder.php";
+require_once CORE_DIR . "View.php";
 
 use Ridmic\Core as Core;
 
@@ -48,8 +49,12 @@ Core\Debug::debug('START');
 //$myApp->run();
 // ========================================================
 
-$responder = new Core\Responder( Core\Responder::TYPE_HTML);
+$responder = new Core\Responder( Core\Responder::TYPE_HTML );
 $myApp     = Core\AppFactory::buildMvc( 'roll_it', true );
+
+//$responder  = new Core\Responder( Core\Responder::TYPE_HTMLPAGE );
+//$myApp      = Core\AppFactory::buildMvc( 'mike' );
+
 $responder->respond( $myApp->run() );
 
 // Need to build/test re-routing, arg massaging, param massaging, global handler insertion  

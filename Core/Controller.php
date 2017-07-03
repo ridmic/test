@@ -8,7 +8,9 @@ include_once "ResponseCode.php";
 class Controller extends Object
 {
     protected $app      = null;
-    protected $router   = null;        
+    protected $router   = null;   
+    protected $view     = null;
+    protected $name     = '-unknown-';
     
     public function __construct( App $app )
     {
@@ -16,16 +18,12 @@ class Controller extends Object
     
         $this->app      = $app;
         $this->router   = $app->router();
+        $this->view     = new View( $app );
 
-        // Set up our base path
-        $baseRoute = rtrim( implode( '/', [self::toURLName($this->app->name()), $this->app->version()] ), '/');
-        Debug::debug( "Base Route: %s",$baseRoute );
-        $this->router->setBaseRoute( $baseRoute );
-        
         // Register our routes
         $this->registerRoutes();
     }
-
+    
     public function index()
     {
         Debug::write('Hello World!');

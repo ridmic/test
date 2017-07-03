@@ -7,10 +7,11 @@ include_once "ResponseCode.php";
 
 class Responder
 {
-    const       TYPE_TEXT   = 0;
-    const       TYPE_JSON   = 1;
-    const       TYPE_HTML   = 2;
-    const       TYPE_XML    = 3;
+    const       TYPE_TEXT       = 0;
+    const       TYPE_JSON       = 1;
+    const       TYPE_HTML       = 2;
+    const       TYPE_XML        = 3;
+    const       TYPE_HTMLPAGE   = 4;
 
     protected $headers      = [];
     protected $showResponse = true;
@@ -40,6 +41,18 @@ class Responder
         {
             switch ( $this->responseType )
             {
+                case Responder::TYPE_HTMLPAGE:
+                    $this->header("HTTP/1.1 " . $response->code() . " " . $response->status());
+                    $this->header('Content-Type: text/html; charset=utf8');
+                    $this->header('X-Content-Type-Options: nosniff');
+                    $this->sendHeaders();
+                    
+                    if ( ! empty($response->response()) )
+                    {
+                        echo $response->response();
+                    }
+                    break;
+                    
                 case Responder::TYPE_HTML:
                     $this->header("HTTP/1.1 " . $response->code() . " " . $response->status());
                     $this->header('Content-Type: text/html; charset=utf8');

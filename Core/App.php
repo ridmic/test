@@ -191,6 +191,11 @@ class AppFactory extends Object
                 if ( class_exists($class) )
                 {
                     Debug::debug("CONTROLLER (CREATED)" );
+
+                    $baseRoute = rtrim( implode( '/', [$controller, $app->version()] ), '/');
+                    Debug::debug( "Base Route: %s",$baseRoute );
+                    $app->router()->setBaseRoute( $baseRoute );
+
                     $controller = new $class( $app );
                 }
             }
