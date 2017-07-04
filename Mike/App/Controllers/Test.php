@@ -14,9 +14,17 @@ class TestController extends Core\Controller
         return $this->view->render( 'test' );
     } 
 
+    public function reroute()
+    {
+        $this->app->dispatcher()->reroute( 'user' );
+        return true;
+    }
+
     // Overrides
     protected function registerRoutes()
     {
+        $this->addBefore( 'ALL', '{:any}', [$this, 'reroute' ] );        
+        
         $this->addRoute( 'GET', 'user/{:id}', [ $this, 'user' ] );        
     }
 }

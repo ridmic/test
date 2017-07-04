@@ -59,9 +59,8 @@ $responder->respond( $myApp->run() );
 
 // Need to build/test re-routing, arg massaging, param massaging, global handler insertion  
 
-// 1) rerouting:
-// we need to store the current uri in the dispatcher and create a reroute function to update it
-// we then need to pass the dispatcher into the controller and not the router to allow access
+// 1) method rerouting:
+// DONE
 
 // 2) massaging:
 // we should be able to access the variables in the router and change them
@@ -70,7 +69,7 @@ $responder->respond( $myApp->run() );
 // we should be able to insert global function into the route list
 
 // 4) Redirecting:
-// we should be able to redirect to a different page via a location header
+// we should be able to redirect to a different page/controller via a location header
 
 Core\Debug::debug('END');
 

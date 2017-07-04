@@ -7,11 +7,49 @@ include_once "ResponseCode.php";
 
 class Dispatcher extends Object
 {
-    protected $router   = null;
+    protected $router       = null;
+    protected $originalUri  = null;
+    protected $activeUri    = null;
     
     function __construct( Router $router ) 
     {
         $this->router    = $router;
+    }
+    
+    public function reRoute( $toMethod, $versioned = false )
+    {
+        Debug::traceEnterFunc();
+        
+        Debug::debug("From: [%s]", $this->activeUri );
+        
+        $bits = $this->decomposeRoute( $versioned );
+        $bits['method'] = $toMethod;
+        $this->activeUri = $this->composeRoute( $bits, $versioned );
+
+        Debug::debug("To: [%s]", $this->activeUri );
+
+        Debug::traceLeaveFunc();
+    }
+
+    public function decomposeRoute( $versioned = false, $route = null )
+    {
+        $route = is_null( $route ) ? $this->activeUri : $route;
+
+        $bits = explode( '/', trim( $route, '/' ) );
+        $app  = array_shift($bits);
+        if ( $versioned )
+            $ver  = array_shift($bits);
+        $method = array_shift($bits);
+        
+        return ( ['controller' => $app, 'version' => $ver, 'method' => $method, 'rest' => $bits ] );
+    }
+    
+    public function composeRoute( $routeBits = [], $versioned = false )
+    {
+        $route = implode( '/', $versioned ? array_merge( array($routeBits['controller'], $routeBits['version'], $routeBits['method']), $routeBits['rest']) 
+                                          : array_merge( array($routeBits['controller'], $routeBits['method']), $routeBits['rest']) );
+
+        return '/'. trim($route, '/');
     }
 
     public function run( $method = null, $uri = null )
@@ -45,8 +83,9 @@ class Dispatcher extends Object
         Debug::traceEnterFunc();
         
         // The current page URL
-        $uri = is_null($uri) ? $this->router->getCurrentUri() : $uri;
-        Debug::debug("URI: %s", $uri );
+        $this->originalUri  = is_null($uri) ? $this->router->getCurrentUri() : $uri;
+        $this->activeUri    = $this->originalUri;
+        Debug::debug("URI: %s", $this->activeUri );
 
         $responseCode = new ResponseCode( ResponseCode::CODE_OK );
         if ( $this->router->before()->hasRoutes() )
@@ -54,8 +93,8 @@ class Dispatcher extends Object
             Debug::debug("Handling (before):" );
 
             // BEFORE : Call all handlers (blockers/massagers/modifiers/etc...)
-            $matches      = $this->router->before()->match( $method, $uri );
-            $responseCode = $this->_handle($matches, $method, $uri);
+            $matches      = $this->router->before()->match( $method, $this->activeUri );
+            $responseCode = $this->_handle($matches, $method, $this->activeUri);
         }
         
         if ( $responseCode->isOK() )
@@ -65,10 +104,10 @@ class Dispatcher extends Object
                 Debug::debug("Handling (route):" );
                 
                 // ROUTES : Call first matched handler only (handlers)
-                $matches = $this->router->route()->match( $method, $uri, false );
+                $matches = $this->router->route()->match( $method, $this->activeUri, false );
                 if ( count($matches) )
                 {
-                    $responseCode = $this->_handle( $matches, $method, $uri );
+                    $responseCode = $this->_handle( $matches, $method, $this->activeUri );
                     if ( $responseCode->isOK() )
                     {
                         // AFTER : Call all handlers (post processing)
@@ -78,8 +117,8 @@ class Dispatcher extends Object
                         {
                             Debug::debug("Handling (after):" );
                         
-                            $matches = $this->router->after()->match( $method, $uri );
-                            $this->_handle($matches, $method, $uri) ;
+                            $matches = $this->router->after()->match( $method, $this->activeUri );
+                            $this->_handle($matches, $method, $this->activeUri) ;
                         }
                     }
                 }

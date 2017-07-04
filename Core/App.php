@@ -59,7 +59,7 @@ class App extends Object
     public function name()                                  { return $this->name; }
     public function setVersion( $version )                  { $this->version = $version; return $version; }
     public function version()                               { return $this->version; }
-    public function isVersioned()                           { return $this->isVersioned; }
+    public function isVersioned()                           { return $this->version != ''; }
     public function nameAsPath()                            { return trim( implode( '/', [$this->name, $this->version]), '/' ); }
     public function nameAsUrl()                             { return trim( implode( '\\', [$this->name, $this->version]), '\\' ); }
  
