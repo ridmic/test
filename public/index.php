@@ -63,7 +63,7 @@ $responder->respond( $myApp->run() );
 // DONE
 
 // 2) massaging:
-// we should be able to access the variables in the router and change them
+// DONE
 
 // 3) insertion:
 // we should be able to insert global function into the route list

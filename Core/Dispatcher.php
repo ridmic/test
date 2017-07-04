@@ -24,18 +24,16 @@ class Dispatcher extends Object
         
         $bits = $this->decomposeRoute( $versioned );
         $bits['method'] = $toMethod;
-        $this->activeUri = $this->composeRoute( $bits, $versioned );
+        $this->composeRoute( $bits, $versioned );
 
         Debug::debug("To: [%s]", $this->activeUri );
 
         Debug::traceLeaveFunc();
     }
 
-    public function decomposeRoute( $versioned = false, $route = null )
+    public function decomposeRoute( $versioned = false )
     {
-        $route = is_null( $route ) ? $this->activeUri : $route;
-
-        $bits = explode( '/', trim( $route, '/' ) );
+        $bits = explode( '/', trim( $this->activeUri, '/' ) );
         $app  = array_shift($bits);
         if ( $versioned )
             $ver  = array_shift($bits);
@@ -49,7 +47,7 @@ class Dispatcher extends Object
         $route = implode( '/', $versioned ? array_merge( array($routeBits['controller'], $routeBits['version'], $routeBits['method']), $routeBits['rest']) 
                                           : array_merge( array($routeBits['controller'], $routeBits['method']), $routeBits['rest']) );
 
-        return '/'. trim($route, '/');
+         $this->activeUri = '/'. trim($route, '/');
     }
 
     public function run( $method = null, $uri = null )
