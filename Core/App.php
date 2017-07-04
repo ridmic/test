@@ -138,6 +138,26 @@ class MvcApp extends App
     public function pathToLanguage( $name, $ext='.php' )    { return $this->makePath( array( $this->appRoot(), 'Language', $name.$ext) ); }
 
     public function classOfController( $name )              { return "\\Ridmic\\".$this->name()."\\".self::toClassName($name).'Controller'; }
+
+    public function loadAltController( $controller )
+    {
+        $file = $this->pathToController( $controller );
+
+        Debug::debug("ALT CONTROLLER (FILE): %s", $file );
+        if ( file_exists($file))
+        {
+            require_once $file;
+            $class      = $this->classOfController($controller);
+            Debug::debug("ALT CONTROLLER (CLASS): %s", "".$class );
+            if ( class_exists($class) )
+            {
+                Debug::debug("ALT CONTROLLER (CREATED)" );
+
+                $controller = new $class( $this );
+            }
+        }
+    }
+    
 }
 
 
@@ -203,6 +223,5 @@ class AppFactory extends Object
         Debug::traceLeaveFunc($app);
         return $app;
     }
-
 }
 

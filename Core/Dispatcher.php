@@ -30,6 +30,24 @@ class Dispatcher extends Object
 
         Debug::traceLeaveFunc();
     }
+    
+    public function redirectTo( $newRouteBits , $versioned = false )
+    {
+        if ( !is_array($newRouteBits) )
+            $newRouteBits = ['controller' => $newRouteBits];
+        $routeBits = array_merge( $this->decomposeRoute( $versioned ), $newRouteBits );
+        $this->composeRoute( $routeBits, $versioned );
+        $this->locationURL( $this->activeUri );
+    }
+    
+    public function locationURL( $url )
+    {
+        if  (!headers_sent() )
+        {
+            header( 'Location: '.$url );
+            exit();
+        }
+    }
 
     public function decomposeRoute( $versioned = false )
     {

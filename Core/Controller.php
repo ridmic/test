@@ -19,7 +19,10 @@ class Controller extends Object
         $this->app      = $app;
         $this->router   = $app->router();
         $this->view     = new View( $app );
-
+        
+        // Give access to our view object
+        $this->view->assignObject( 'view', $this->view );
+        
         // Register our routes
         $this->registerRoutes();
     }
@@ -33,11 +36,6 @@ class Controller extends Object
     protected function makeResponse( $code, $response = null )
     {
         return new ResponseCode( $code, $response );
-    }
-    
-    public function block()
-    {
-        return $this->makeResponse( ResponseCode::CODE_FORBIDDEN );
     }
     
     protected function registerRoutes()

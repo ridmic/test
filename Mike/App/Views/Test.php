@@ -1,4 +1,3 @@
-<html>
-    <head></head>
-    <body><?php var_dump( $vPARAM1 ); ?></body>
-</html>
+<?php $theVIEW->load( 'header.tmpl' ); ?>
+
+<?php $theVIEW->load( 'footer.tmpl' ); ?>

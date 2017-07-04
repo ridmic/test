@@ -49,27 +49,14 @@ Core\Debug::debug('START');
 //$myApp->run();
 // ========================================================
 
-$responder = new Core\Responder( Core\Responder::TYPE_HTML );
-$myApp     = Core\AppFactory::buildMvc( 'roll_it', true );
+//$responder = new Core\Responder( Core\Responder::TYPE_HTML );
+//$myApp     = Core\AppFactory::buildMvc( 'roll_it', true );
+//$myApp->loadAltController( 'block_it' );
 
-//$responder  = new Core\Responder( Core\Responder::TYPE_HTMLPAGE );
-//$myApp      = Core\AppFactory::buildMvc( 'mike' );
+$responder  = new Core\Responder( Core\Responder::TYPE_HTMLPAGE );
+$myApp      = Core\AppFactory::buildMvc( 'mike' );
 
 $responder->respond( $myApp->run() );
-
-// Need to build/test re-routing, arg massaging, param massaging, global handler insertion  
-
-// 1) method rerouting:
-// DONE
-
-// 2) massaging:
-// DONE
-
-// 3) insertion:
-// we should be able to insert global function into the route list
-
-// 4) Redirecting:
-// we should be able to redirect to a different page/controller via a location header
 
 Core\Debug::debug('END');
 

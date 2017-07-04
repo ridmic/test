@@ -18,19 +18,34 @@ class View extends Object
         $this->app = $app;
     }
 
-	public function assign( $sVarName, $sVal )
+	public function assign( $varName, $val )
 	{
-		$sVal     = htmlentities($sVal, ENT_QUOTES, 'UTF-8');
-		$sVarName = 'v'.strtoupper($sVarName);
-		$this->assigns[$sVarName] = $sVal;
+		$val      = htmlentities($val, ENT_QUOTES, 'UTF-8');
+		$varName = 'v'.strtoupper($varName);
+		$this->assigns[$varName] = $val;
 	}
     
-	public function assignCallable( $sVarName, $call )
+    public function assignTemplate( $varName, $template )
+    {
+		$varName = 'v'.strtoupper($varName);
+		$this->assigns[$varName] = $this->fill( $template );
+    }
+    
+	public function assignCallable( $varName, $call )
 	{
 	    if ( is_callable($call))
 	    {
-		    $sVarName = 'vf'.strtoupper($sVarName);
-		    $this->assigns[$sVarName] = $call;
+		    $varName = 'vf'.strtoupper($varName);
+		    $this->assigns[$varName] = $call;
+	    }
+	}
+
+	public function assignObject( $varName, $call )
+	{
+	    if ( is_object($call))
+	    {
+		    $varName = 'the'.strtoupper($varName);
+		    $this->assigns[$varName] = $call;
 	    }
 	}
 
@@ -48,6 +63,11 @@ class View extends Object
         return $this->makeResponse( ResponseCode::CODE_OK, $contents );
     }
 
+    public function load( $name )
+    {
+        echo $this->fill( $name );    
+    }
+    
     public function fill( $name )
     {
         $name           = self::toClassName($name);
@@ -61,7 +81,6 @@ class View extends Object
         }
         // Give our view access to language
         //$this->assignCallable( 'lang', array($this->controller, 'L') );
-        
 		// Make our variables available to the templates
 		extract ( $this->assigns );
 		ob_start();
