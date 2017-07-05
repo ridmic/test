@@ -1,21 +1,14 @@
 <?php
-//include "header.php";
-
 // Pull in our framework config
 require __DIR__ . "/../Core/Config.php";
-
-require_once CORE_DIR . "App.php";
-require_once CORE_DIR . "Responder.php";
-require_once CORE_DIR . "View.php";
 
 use Ridmic\Core as Core;
 
 Core\Debug::level( Core\Debug::DBG_DEBUG );
 Core\Debug::showDateTime( false );
 
-Core\Debug::debug('START');
+Core\Debug::debug('START [CORE VER]: ' . CORE_VER );
  
-
 // ========================================================
 // We can create simple closure based app
 // ========================================================
@@ -60,5 +53,4 @@ $responder->respond( $myApp->run() );
 
 Core\Debug::debug('END');
 
-//include "footer.php";
 ?>
