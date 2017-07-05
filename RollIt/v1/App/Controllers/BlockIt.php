@@ -1,20 +1,12 @@
 <?php
 namespace Ridmic\RollIt;
 
-require_once CORE_DIR . "Controller.php";
+require_once CORE_DIR . "Controllers/AuthApiKey.php";
 
-use Ridmic\Core as Core;
+use Ridmic\Core             as Core;
+use Ridmic\Core\Controller  as Controller;
 
-class BlockItController extends Core\Controller
+// Bring the controller into our APP
+class BlockItController extends Controller\AuthApiKeyController
 {
-    public function block()
-    {
-        return $this->makeResponse( Core\ResponseCode::CODE_FORBIDDEN );
-    }
-
-    // Overrides
-    protected function registerRoutes()
-    {
-        $this->addBefore( 'ALL', '{:any}', [$this, 'block' ] );        
-    }
 }

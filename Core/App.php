@@ -17,6 +17,7 @@ class App extends Object
 
     protected $router               = null;
     protected $dispatcher           = null;
+    protected $responder            = null;
 
     public function __construct( $name )
     {
@@ -52,6 +53,8 @@ class App extends Object
     public function pathToConfig( $name, $ext='.ini' )      { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Config',   $name.$ext) ); }
     public function pathToLanguage( $name, $ext='.php' )    { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Language', $this->language, $name.$ext) ); }
     public function pathToPublic( $name, $ext='.php' )      { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Public',   $name.$ext) ); }
+
+    public function pathToCoreController($name,$ext='.php') { return $this->makePath( array( $this->rootPath, 'Core', 'Controllers', self::toClassName($name).$ext) ); }
     
     public function isTesting()                             { return $this->testing; }
 
@@ -86,7 +89,9 @@ class App extends Object
     public function setDispatcher( Dispatcher $d )          { $this->dispatcher = $d; return $this; }
     public function dispatcher()                            { return $this->dispatcher; }
     
- 
+    public function setResponder( Responder $d )            { $this->responder = $d; return $this; }
+    public function responder()                             { return $this->responder; }
+    
     public function run()
     {
         return $this->dispatcher()->run();
@@ -127,6 +132,27 @@ class App extends Object
         return  Utils\Input::validIP($ipaddress);
     }
     
+    public function loadCoreController( $controller )
+    {
+        $file = $this->pathToCoreController( $controller );
+
+        Debug::debug("CORE CONTROLLER (FILE): %s", $file );
+        if ( file_exists($file))
+        {
+            require_once $file;
+            $class      = "\\Ridmic\\Core\\Controller\\".self::toClassName($controller).'Controller';
+            Debug::debug("CORE CONTROLLER (CLASS): %s", "".$class );
+            if ( class_exists($class) )
+            {
+                Debug::debug("CORE CONTROLLER (CREATED)" );
+
+                return new $class( $this, self::toClassName($controller) );
+            }
+        }
+        return null;
+    }
+    
+    
 }
 
 class MvcApp extends App
@@ -152,9 +178,10 @@ class MvcApp extends App
             {
                 Debug::debug("ALT CONTROLLER (CREATED)" );
 
-                $controller = new $class( $this, self::toClassName($controller) );
+                return new $class( $this, self::toClassName($controller) );
             }
         }
+        return null;
     }
     
 }
@@ -163,7 +190,7 @@ class AppFactory extends Object
 {
     public static function rootPath()   { return __DIR__.'/../'; }
     
-    public static function build( $name, $config = 'Application' )
+    public static function build( $name, $rType = Responder::TYPE_JSON, $config = 'Application' )
     {
         Debug::traceEnterFunc();
         
@@ -173,12 +200,13 @@ class AppFactory extends Object
         $app->init( $config );
         $app->setRouter( new Router() );
         $app->setDispatcher( new Dispatcher( $app->router() ) );
+        $app->setResponder( new Responder( $rType ) );
         
         Debug::traceLeaveFunc($app);
         return $app;
     }
 
-    public static function buildMvc( $name, $versioned = false, $config = 'Application' )
+    public static function buildMvc( $name, $versioned = false, $rType = Responder::TYPE_JSON, $config = 'Application' )
     {
         Debug::traceEnterFunc();
         
@@ -188,6 +216,7 @@ class AppFactory extends Object
         $app->init( $config );
         $app->setRouter( new Router() );
         $app->setDispatcher( new Dispatcher( $app->router() ) );
+        $app->setResponder( new Responder( $rType ) );
         
         $uri        = $app->router()->getCurrentUri();
         Debug::debug("URI: %s", $uri );

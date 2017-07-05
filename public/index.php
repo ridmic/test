@@ -4,7 +4,7 @@ require __DIR__ . "/../Core/Config.php";
 
 use Ridmic\Core as Core;
 
-Core\Debug::level( Core\Debug::DBG_DEBUG );
+Core\Debug::level( Core\Debug::DBG_ALWAYS);
 Core\Debug::showDateTime( false );
 
 Core\Debug::debug('START [CORE VER]: ' . CORE_VER );
@@ -42,15 +42,23 @@ Core\Debug::debug('START [CORE VER]: ' . CORE_VER );
 //$myApp->run();
 // ========================================================
 
-//$responder = new Core\Responder( Core\Responder::TYPE_HTML );
-//$myApp     = Core\AppFactory::buildMvc( 'roll_it', true );
-//$myApp->loadAltController( 'block_it' );
+$myApp = Core\AppFactory::buildMvc( 'roll_it', true );
 
-$responder  = new Core\Responder( Core\Responder::TYPE_HTMLPAGE );
-$myApp      = Core\AppFactory::buildMvc( 'mike' );
+//$controller = $myApp->loadAltController( 'block_it' );
+$controller = $myApp->loadCoreController( 'auth_api_key' );
+if ( !is_null($controller) )
+{
+    $controller->setApiKey( 'password' );
+    $myApp->responder()->respond( $myApp->run() );
+}
 
-$responder->respond( $myApp->run() );
+//$responder  = new Core\Responder( Core\Responder::TYPE_HTMLPAGE );
+//$myApp      = Core\AppFactory::buildMvc( 'mike' );
+//$myApp->responder()->respond( $myApp->run() );
+
+// TODO:
+// Add API Protection (token, jwt, oauth)
+// Add Form Protecion
+// Add Other protection
 
 Core\Debug::debug('END');
-
-?>

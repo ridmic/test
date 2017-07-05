@@ -4,22 +4,25 @@ namespace Ridmic\Core;
 include_once "Debug.php";
 include_once "Object.php";
 include_once "ResponseCode.php";
+include_once "View.php";
 
 class Controller extends Object
 {
-    protected $app      = null;
-    protected $router   = null;   
-    protected $view     = null;
-    protected $name     = '-unknown-';
+    protected $app          = null;
+    protected $router       = null;   
+    protected $responder    = null;   
+    protected $view         = null;
+    protected $name         = '-unknown-';
     
     public function __construct( App $app, $name = '-unknown-' )
     {
         parent::__construct();
     
-        $this->app      = $app;
-        $this->name     = $name;
-        $this->router   = $app->router();
-        $this->view     = new View( $app );
+        $this->app          = $app;
+        $this->name         = $name;
+        $this->router       = $app->router();
+        $this->responder    = $app->responder();
+        $this->view         = new View( $app );
         
         // Load any default languages
         $this->view->loadLanguage( '_common' );
