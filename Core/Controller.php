@@ -12,25 +12,37 @@ class Controller extends Object
     protected $view     = null;
     protected $name     = '-unknown-';
     
-    public function __construct( App $app )
+    public function __construct( App $app, $name = '-unknown-' )
     {
         parent::__construct();
     
         $this->app      = $app;
+        $this->name     = $name;
         $this->router   = $app->router();
         $this->view     = new View( $app );
         
+        // Load any default languages
+        $this->view->loadLanguage( '_common' );
+        $this->view->loadLanguage( $this->name );
+
+
         // Give access to our view object
         $this->view->assignObject( 'view', $this->view );
         
         // Register our routes
         $this->registerRoutes();
     }
+    public function name()      { return $this->name; }
     
     public function index()
     {
         Debug::write('Hello World!');
         return $this->makeResponse( ResponseCode::CODE_OK );
+    }
+    
+    protected function L( $index, $args=[] )
+    {
+        return $this->view->L( $index, $args );
     }
     
     protected function makeResponse( $code, $response = null )

@@ -10,6 +10,7 @@ class View extends Object
     protected $app          = null;
     protected $useFolders   = false;
  	protected $assigns		= array();
+    protected $language     = [];
 
     public function __construct( App $app )
     {
@@ -18,34 +19,28 @@ class View extends Object
         $this->app = $app;
     }
 
-	public function assign( $varName, $val )
+	public function assign( $sVarName, $sVal )
 	{
-		$val      = htmlentities($val, ENT_QUOTES, 'UTF-8');
-		$varName = 'v'.strtoupper($varName);
-		$this->assigns[$varName] = $val;
+		$sVal     = htmlentities($sVal, ENT_QUOTES, 'UTF-8');
+		$sVarName = 'v'.strtoupper($sVarName);
+		$this->assigns[$sVarName] = $sVal;
 	}
     
-    public function assignTemplate( $varName, $template )
-    {
-		$varName = 'v'.strtoupper($varName);
-		$this->assigns[$varName] = $this->fill( $template );
-    }
-    
-	public function assignCallable( $varName, $call )
+	public function assignObject( $sVarName, $object )
 	{
-	    if ( is_callable($call))
+	    if ( is_object($object))
 	    {
-		    $varName = 'vf'.strtoupper($varName);
-		    $this->assigns[$varName] = $call;
+		    $sVarName = 'the'.strtoupper($sVarName);
+		    $this->assigns[$sVarName] = $object;
 	    }
 	}
 
-	public function assignObject( $varName, $call )
+	public function assignCallable( $sVarName, $call )
 	{
-	    if ( is_object($call))
+	    if ( is_callable($call))
 	    {
-		    $varName = 'the'.strtoupper($varName);
-		    $this->assigns[$varName] = $call;
+		    $sVarName = 'vf'.strtoupper($sVarName);
+		    $this->assigns[$sVarName] = $call;
 	    }
 	}
 
@@ -57,17 +52,10 @@ class View extends Object
         {
             return $this->makeResponse(ResponseCode::CODE_INTERNALERROR);
         }
-        // Give our view access to language
-        //$this->assignCallable( 'lang', array($this->controller, 'L') );
-        
+
         return $this->makeResponse( ResponseCode::CODE_OK, $contents );
     }
 
-    public function load( $name )
-    {
-        echo $this->fill( $name );    
-    }
-    
     public function fill( $name )
     {
         $name           = self::toClassName($name);
@@ -80,7 +68,9 @@ class View extends Object
             return false;
         }
         // Give our view access to language
-        //$this->assignCallable( 'lang', array($this->controller, 'L') );
+        if ( !array_key_exists( 'vfLANG', $this->assigns ) )
+            $this->assignCallable( 'lang', array($this, 'L') );
+        
 		// Make our variables available to the templates
 		extract ( $this->assigns );
 		ob_start();
@@ -94,11 +84,50 @@ class View extends Object
         return $contents;
     }
 
+    public function L( $index, $args=[] )
+    {
+        $text = $index;
+        if ( array_key_exists($index, $this->language) )
+            $text = $this->language[$index];
+
+        // Allow replacable params
+        $count = 1;
+        $args  = is_array( $args ) ? $args : [ $args ];
+        foreach ( $args as $arg )
+        {
+            $repl = '%'.$count;
+            $text = str_replace( $repl, $arg, $text );
+            $count++;
+        }
+        return $text;
+    }
+
+    public function loadLanguage( $name )
+    {
+        // Pull in any requested language
+        $name     = $this->useFolders ? $name.'/'.$name : $name;
+        $langFile = $this->app->pathToLanguage( $name );
+        Debug::debug( "Language File: %s",$langFile );
+        if ( file_exists( $langFile ) ) 
+        {
+            $lang = array();
+            include $langFile;
+
+            // Copy the language to our own
+            $this->language = array_merge( $this->language, $lang );
+            $lang = array();
+            return true;
+        }
+        return false;
+    }
+
+
     protected function makeResponse( $code, $contents = [] )
     {
         $response = new ResponseCode( $code );
         $response->loadResponse( $contents );
         return $response;
     }
+
     
 }

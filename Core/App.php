@@ -49,9 +49,9 @@ class App extends Object
     public function pathRoot()                              { return $this->rootPath; }
 
     public function pathToApp( $name, $ext='.php' )         { return $this->makePath( array( $this->appRoot(), $name.$ext) ); }
-    public function pathToConfig( $name, $ext='.ini' )      { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Config', $name.$ext) ); }
-    public function pathToLanguage( $name, $ext='.php' )    { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Language', $this->language(), $name.$ext) ); }
-    public function pathToPublic( $name, $ext='.php' )      { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Public', $name.$ext) ); }
+    public function pathToConfig( $name, $ext='.ini' )      { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Config',   $name.$ext) ); }
+    public function pathToLanguage( $name, $ext='.php' )    { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Language', $this->language, $name.$ext) ); }
+    public function pathToPublic( $name, $ext='.php' )      { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Public',   $name.$ext) ); }
     
     public function isTesting()                             { return $this->testing; }
 
@@ -135,7 +135,6 @@ class MvcApp extends App
     public function pathToView( $name, $ext='.php' )        { return $this->makePath( array( $this->appRoot(), 'Views', $name.$ext) ); }
     public function pathToController( $name, $ext='.php' )  { return $this->makePath( array( $this->appRoot(), 'Controllers', self::toClassName($name).$ext) ); }
     public function pathToModel( $name, $ext='.php' )       { return $this->makePath( array( $this->appRoot(), 'Models', $name.$ext) ); }
-    public function pathToLanguage( $name, $ext='.php' )    { return $this->makePath( array( $this->appRoot(), 'Language', $name.$ext) ); }
 
     public function classOfController( $name )              { return "\\Ridmic\\".$this->name()."\\".self::toClassName($name).'Controller'; }
 
@@ -153,7 +152,7 @@ class MvcApp extends App
             {
                 Debug::debug("ALT CONTROLLER (CREATED)" );
 
-                $controller = new $class( $this );
+                $controller = new $class( $this, self::toClassName($controller) );
             }
         }
     }
@@ -170,12 +169,11 @@ class AppFactory extends Object
         Debug::traceEnterFunc();
         
         $app = new App( $name );
+        $app->setRootPath(self::rootPath());
         
         $app->init( $config );
         $app->setRouter( new Router() );
         $app->setDispatcher( new Dispatcher( $app->router() ) );
-        
-        $app->setRootPath(self::rootPath());
         
         Debug::traceLeaveFunc($app);
         return $app;
@@ -186,13 +184,12 @@ class AppFactory extends Object
         Debug::traceEnterFunc();
         
         $app = new MvcApp( $name );
+        $app->setRootPath(self::rootPath());
 
         $app->init( $config );
         $app->setRouter( new Router() );
         $app->setDispatcher( new Dispatcher( $app->router() ) );
         
-        $app->setRootPath(self::rootPath());
- 
         $uri        = $app->router()->getCurrentUri();
         Debug::debug("URI: %s", $uri );
         $bits       = explode( '/', trim($uri, '/') );
@@ -216,7 +213,7 @@ class AppFactory extends Object
                     Debug::debug( "Base Route: %s",$baseRoute );
                     $app->router()->setBaseRoute( $baseRoute );
 
-                    $controller = new $class( $app );
+                    $controller = new $class( $app, self::toClassName($controller) );
                 }
             }
         }
