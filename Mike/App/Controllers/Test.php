@@ -1,8 +1,8 @@
 <?php
 namespace Ridmic\Mike;
 
-require_once __DIR__ . "/../../../Core/Controller.php";
-require_once __DIR__ . "/../../../Core/View.php";
+require_once CORE_DIR . "Controller.php";
+require_once CORE_DIR . "View.php";
 
 use Ridmic\Core as Core;
 

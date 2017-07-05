@@ -1,7 +1,7 @@
 <?php
 namespace Ridmic\Test;
 
-require_once __DIR__ . "/../../../Core/Controller.php";
+require_once CORE_DIR . "Controller.php";
 
 use Ridmic\Core as Core;
 

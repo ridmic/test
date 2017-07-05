@@ -159,7 +159,6 @@ class MvcApp extends App
     
 }
 
-
 class AppFactory extends Object
 {
     public static function rootPath()   { return __DIR__.'/../'; }
