@@ -8,6 +8,7 @@ use Ridmic\Core as Core;
 class AuthApiKeyController extends Core\Controller
 {
     protected $apiKey    = 'a-random-api-key';
+    protected $apiHeader = 'x-api-key';
     
     public function setApiKey( $apiKey )
     {
@@ -17,7 +18,7 @@ class AuthApiKeyController extends Core\Controller
     public function block()
     {
         // Get the security token
-        $token = $this->router->getAuthenticationToken();
+        $token = $this->router->getHeader( $this->apiHeader );
         switch ( $token )
         {
             case '':

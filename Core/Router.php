@@ -164,7 +164,6 @@ class RouteList extends Object
 
 class Router
 {
-    protected   $tokenAuth  = 'x-api-key';
     protected   $routes     = null;
     protected   $before     = null;
     protected   $after      = null;
@@ -300,12 +299,10 @@ class Router
         }
     }
     
-    public function getAuthenticationToken()
+    public function getHeader( $header )
     {
-        $token   = '';
         $headers = Input::serverGetHeaders();
-        $token   = isset($headers[$this->tokenAuth]) ?  $headers[$this->tokenAuth] : '';
-        return $token;
+        return isset($headers[$header]) ?  $headers[$header] : '';
     }
     
 }
