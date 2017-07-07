@@ -4,6 +4,7 @@ namespace Ridmic\Core;
 require_once "Utils/Config.php";
 require_once "Router.php";
 require_once "Dispatcher.php";
+require_once "Utils/Session.php";
 require_once "Utils/JwtClaim.php";
 
 class App extends Object
@@ -16,6 +17,9 @@ class App extends Object
     protected $language             = 'en';
     protected $appConfig            = null;
     protected $testing              = false;
+
+    protected $session              = null;
+    protected $useSessions          = false;
 
     protected $router               = null;
     protected $dispatcher           = null;
@@ -43,6 +47,21 @@ class App extends Object
         $this->domain       = $this->appConfig->get('domain', $this->domain );
         $this->language     = $this->appConfig->get('language', $this->language );
         $this->testing      = $this->appConfig->get('testing', $this->testing );
+
+        // Defaults
+        $this->useSessions  = $this->appConfig->get('sessions', $this->useSessions );
+
+        // Create our session?
+        if ( $this->useSessions )
+        {
+            $this->session = new Utils\Session( $this->name() );
+            $this->session->start();
+            if ( !$this->session->isValid())
+            {
+                $this->session->destroy();
+                $this->session->start();
+            }
+        }
     }    
     
 
@@ -69,6 +88,8 @@ class App extends Object
  
     public function setLanguage( $code )                    { $this->language = $code; return $this; }
     public function language()                              { return $this->language; }
+
+    public function session()                               { return $this->useSessions ? $this->session : die('Fatal Session Error'); }
 
     public function makePath( $bits )
     {

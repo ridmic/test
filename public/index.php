@@ -42,34 +42,33 @@ Core\Debug::debug('START [CORE VER]: ' . CORE_VER );
 //$myApp->run();
 // ========================================================
 
-$myApp = Core\AppFactory::buildMvc( 'roll_it', true, Core\Responder::TYPE_HTML );
+//$myApp = Core\AppFactory::buildMvc( 'roll_it', true, Core\Responder::TYPE_HTML );
 
 //$controller = $myApp->loadAltController( 'block_it' );
 //$controller = $myApp->loadCoreController( 'auth_api_key' );
 
-$controller = $myApp->loadCoreControllerByName( 'AuthJwtToken' );
+//$controller = $myApp->loadCoreControllerByName( 'AuthJwtToken' );
 
-$secret     = 'iamasecretkey';
+//$secret     = 'iamasecretkey';
 
-if ( !is_null($controller) )
-{
+//if ( !is_null($controller) )
+//{
     //$controller->setApiKey( 'password' );
-    $controller->setSecret( $secret );
-    $controller->setJwtId( '28e17b24220fe49e0fc4583b8aa90d7cf3749dc51ec3f45707dee18c6ba35f07' );
-    $controller->addContextClaim( 'param1', 'value1' );
-    $controller->addContextClaim( 'param2', 'value2' );
-    $controller->addContextClaim( 'param3', 'value3' );
-    $myApp->responder()->respond( $myApp->run() );
-}
+    //$controller->setSecret( $secret );
+    //$controller->setJwtId( '28e17b24220fe49e0fc4583b8aa90d7cf3749dc51ec3f45707dee18c6ba35f07' );
+    //$controller->addContextClaim( 'param1', 'value1' );
+    //$controller->addContextClaim( 'param2', 'value2' );
+    //$controller->addContextClaim( 'param3', 'value3' );
+    //$myApp->responder()->respond( $myApp->run() );
+//}
 
-//$myApp      = Core\AppFactory::buildMvc( 'mike' );
+$myApp      = Core\AppFactory::buildMvc( 'mike' );
 
 //$myApp->responder()->respond( $myApp->run() );
 
 // TODO:
 // Add API Protection (oauth)
-// Add Form Protecion
-// Add Other protection
+// Add Ajax handling?
 
 /*
 require_once CORE_DIR . "Utils/JwtClaim.php";
