@@ -4,9 +4,11 @@ namespace Ridmic\Core;
 require_once "Utils/Config.php";
 require_once "Router.php";
 require_once "Dispatcher.php";
+require_once "Utils/JwtClaim.php";
 
 class App extends Object
 {
+    protected $domain               = 'unknown';
     protected $name                 = 'unknown';
     protected $version              = '';
     protected $rootPath             = '';
@@ -38,10 +40,9 @@ class App extends Object
         date_default_timezone_set($timezone);
         
         // Defaults
+        $this->domain       = $this->appConfig->get('domain', $this->domain );
         $this->language     = $this->appConfig->get('language', $this->language );
         $this->testing      = $this->appConfig->get('testing', $this->testing );
-
-        $this->setRootUrl( $this->appConfig->get('testing', $this->testing ) );        
     }    
     
 
@@ -132,6 +133,11 @@ class App extends Object
         return  Utils\Input::validIP($ipaddress);
     }
     
+    public function loadCoreControllerByName( $controller )
+    {
+        return $this->loadCoreController( self::toURLName($controller) );
+    }
+    
     public function loadCoreController( $controller )
     {
         $file = $this->pathToCoreController( $controller );
@@ -152,7 +158,19 @@ class App extends Object
         return null;
     }
     
-    
+    public function makeJwt( $expiresIn = null )
+    {
+        $jwt = new Utils\JwtClaim();
+        $jwt->setIssuer( $this->domain );
+        $jwt->setSubject( $this->name );
+        $jwt->setAudience( $this->name );
+        $jwt->setNotBefore(time());
+        $jwt->setExpiration( time()+(is_null($expiresIn) ? 60 : (is_integer($expiresIn) ? $expiresIn : 60)));
+        $jwt->setIssued(time());
+        $jwt->setIdentifier(Utils\Secure::generateToken());
+        
+        return $jwt;
+    }
 }
 
 class MvcApp extends App
@@ -164,6 +182,11 @@ class MvcApp extends App
 
     public function classOfController( $name )              { return "\\Ridmic\\".$this->name()."\\".self::toClassName($name).'Controller'; }
 
+    public function loadAltControllerByName( $controller )
+    {
+        return $this->loadAltController( self::toURLName($controller) );
+    }
+    
     public function loadAltController( $controller )
     {
         $file = $this->pathToController( $controller );
@@ -230,6 +253,9 @@ class AppFactory extends Object
             Debug::debug("CONTROLLER (FILE): %s", $file );
             if ( file_exists($file))
             {
+                // Re-run our init to take note or any versioning
+                $app->init( $config );
+                
                 require_once $file;
                 $class      = $app->classOfController($controller);
                 Debug::debug("CONTROLLER (CLASS): %s", "".$class );

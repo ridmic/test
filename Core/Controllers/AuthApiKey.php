@@ -15,7 +15,7 @@ class AuthApiKeyController extends Core\Controller
         $this->apiKey = "$apiKey";
     }
     
-    public function block()
+    public function authenticate()
     {
         // Get the security token
         $token = $this->router->getHeader( $this->apiHeader );
@@ -43,6 +43,6 @@ class AuthApiKeyController extends Core\Controller
     // Overrides
     protected function registerRoutes()
     {
-        $this->addBefore( 'ALL', '{:any}', [$this, 'block' ] );        
+        $this->addBefore( 'ALL', '{:any}', [$this, 'authenticate' ] );        
     }
 }

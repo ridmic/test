@@ -37,6 +37,11 @@ class Jwt
         return $payload;
     }
     
+    public static function isValid( $jwt, $key, $algo = 'HS256' )
+    {
+        return is_null( self::decode($jwt, $key, $algo) ) ? false : true;
+    }
+    
     public static function decode( $jwt, $key, $algo = 'HS256' )
     {
         $retVal = null;
