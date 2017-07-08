@@ -1,4 +1,4 @@
-<?php namespace Ridmic\Core\Utils;
+<?php namespace DryMile\Core\Utils;
 
 class Config
 {

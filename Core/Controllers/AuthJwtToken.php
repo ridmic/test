@@ -1,10 +1,10 @@
 <?php
-namespace Ridmic\Core\Controller;
+namespace DryMile\Core\Controller;
 
 require_once __DIR__ ."/../Controller.php";
 require_once __DIR__ ."/../Utils/JwtClaim.php";
 
-use Ridmic\Core as Core;
+use DryMile\Core as Core;
 
 class AuthJwtTokenController extends Core\Controller
 {

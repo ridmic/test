@@ -1,10 +1,10 @@
 <?php
-namespace Ridmic\Mike;
+namespace DryMile\Mike;
 
 require_once CORE_DIR . "Controller.php";
 require_once CORE_DIR . "View.php";
 
-use Ridmic\Core as Core;
+use DryMile\Core as Core;
 
 class TestController extends Core\Controller
 {

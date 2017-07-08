@@ -1,4 +1,4 @@
-<?php namespace Ridmic\Core\Utils;
+<?php namespace DryMile\Core\Utils;
 
 // Static classs to be used by anything that requires encryption, hashing or secure tokens
 class Secure

@@ -1,6 +1,6 @@
 <?php
 
-namespace Ridmic\Core;
+namespace DryMile\Core;
 
 // Define our helpers
 define("CORE_DIR", __DIR__.'/' );

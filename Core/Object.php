@@ -1,5 +1,5 @@
 <?php
-namespace Ridmic\Core;
+namespace DryMile\Core;
 
 include_once "Debug.php";
 

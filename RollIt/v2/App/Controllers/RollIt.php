@@ -1,9 +1,9 @@
 <?php
-namespace Ridmic\RollIt;
+namespace DryMile\RollIt;
 
 require_once CORE_DIR . "Controller.php";
 
-use Ridmic\Core as Core;
+use DryMile\Core as Core;
 
 class RollItController extends Core\Controller
 {

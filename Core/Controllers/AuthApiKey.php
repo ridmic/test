@@ -1,9 +1,9 @@
 <?php
-namespace Ridmic\Core\Controller;
+namespace DryMile\Core\Controller;
 
 require_once __DIR__ ."/../Controller.php";
 
-use Ridmic\Core as Core;
+use DryMile\Core as Core;
 
 class AuthApiKeyController extends Core\Controller
 {

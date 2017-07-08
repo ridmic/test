@@ -1,5 +1,5 @@
 <?php
-namespace Ridmic\Core\Utils;
+namespace DryMile\Core\Utils;
 
 class Input
 {

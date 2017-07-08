@@ -1,5 +1,5 @@
 <?php
-namespace Ridmic\Core;
+namespace DryMile\Core;
 
 require_once "Utils/Config.php";
 require_once "Router.php";
@@ -166,7 +166,7 @@ class App extends Object
         if ( file_exists($file))
         {
             require_once $file;
-            $class      = "\\Ridmic\\Core\\Controller\\".self::toClassName($controller).'Controller';
+            $class      = "\\DryMile\\Core\\Controller\\".self::toClassName($controller).'Controller';
             Debug::debug("CORE CONTROLLER (CLASS): %s", "".$class );
             if ( class_exists($class) )
             {
@@ -200,7 +200,7 @@ class MvcApp extends App
     public function pathToController( $name, $ext='.php' )  { return $this->makePath( array( $this->appRoot(), 'Controllers', self::toClassName($name).$ext) ); }
     public function pathToModel( $name, $ext='.php' )       { return $this->makePath( array( $this->appRoot(), 'Models', $name.$ext) ); }
 
-    public function classOfController( $name )              { return "\\Ridmic\\".$this->name()."\\".self::toClassName($name).'Controller'; }
+    public function classOfController( $name )              { return "\\DryMile\\".$this->name()."\\".self::toClassName($name).'Controller'; }
 
     public function loadAltControllerByName( $controller )
     {

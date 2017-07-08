@@ -2,7 +2,7 @@
 // Pull in our framework config
 require __DIR__ . "/../Core/Config.php";
 
-use Ridmic\Core as Core;
+use DryMile\Core as Core;
 
 Core\Debug::level( Core\Debug::DBG_ALWAYS);
 Core\Debug::showDateTime( false );

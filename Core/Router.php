@@ -1,11 +1,11 @@
 <?php
-namespace Ridmic\Core;
+namespace DryMile\Core;
 
 include_once "Utils/Input.php";
 include_once "Debug.php";
 include_once "Object.php";
 
-use \Ridmic\Core\Utils\Input    as Input;
+use \DryMile\Core\Utils\Input    as Input;
 
 class RouteList extends Object
 {
