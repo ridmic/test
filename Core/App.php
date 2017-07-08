@@ -63,7 +63,6 @@ class App extends Object
             }
         }
     }    
-    
 
     public function appRoot()                               { return $this->makePath( array( $this->rootPath, $this->nameAsPath(), 'App') ); }
     public function urlRoot()                               { return $this->rootURL; }

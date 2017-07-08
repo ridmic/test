@@ -23,9 +23,11 @@ class RouteList extends Object
     protected   $baseRoute      = '';
     protected   $exactMatch     = true;
     protected   $caseMatch      = false;
+    protected   $isAjaxRequest  = false;
     
     public function setBaseRoute( $br )     { $this->baseRoute =  '/' . trim($br, '/'); }
     public function baseRoute( $br )        { return $this->baseRoute;  }
+    public function setAjaxRequest($b)      { $this->isAjaxRequest = $b ? true : false; }
     
     public function allowedMethod( $method ) 
     {
@@ -69,6 +71,9 @@ class RouteList extends Object
         $method  = strtoupper($method);
         if ( isset($this->routes[$method]) )
         {
+            // If we are doing an ajax call, force the patterns to match
+            $uri = $this->isAjaxRequest ? $uri.' {ajax}' : $uri;
+        
             Debug::debug("Matching: %s:%s", $method, $uri );
             
             foreach ( $this->routes[$method] as $route ) 
@@ -79,7 +84,6 @@ class RouteList extends Object
                 // Allow route specific override of exact matching
                 $exactMatch = substr($pattern, -1) == '#' ? false : $this->exactMatch;
                 $pattern    = substr($pattern, -1) == '#' ? substr($pattern, 0, -1) : $pattern;
-
 
                 Debug::debug("Against: %s:%s", $method, $pattern );
                 
@@ -164,20 +168,27 @@ class RouteList extends Object
 
 class Router
 {
-    protected   $routes     = null;
-    protected   $before     = null;
-    protected   $after      = null;
-    protected   $args       = [];
-    protected   $argsUri    = [];
+    protected   $routes         = null;
+    protected   $before         = null;
+    protected   $after          = null;
+    protected   $args           = [];
+    protected   $argsUri        = [];
+    protected   $isAjaxRequest  = false;
 
     public function __construct( $versioned = false )
     {
+        // Pull in the parameters
+        $method         = $this->getRequestMethod();
+
         $this->before   = new RouteList;      // #1 : All of the matches here get called
         $this->routes   = new RouteList;      // #2 : Only the first match of this gets called
         $this->after    = new RouteList;      // #3 : All of the matches here get called
         
-        // Pull in the parameters
-        $method         = $this->getRequestMethod();
+        $this->before->setAjaxRequest( $this->isAjaxRequest );
+        $this->routes->setAjaxRequest( $this->isAjaxRequest );
+        $this->after->setAjaxRequest( $this->isAjaxRequest );
+        
+        
         $this->argsUri  = $this->routes->cleanInputs($_GET);
         $this->args     = [];
         switch( $method )
@@ -267,7 +278,9 @@ class Router
     public function getRequestMethod()
     {
         // Take the method as found in $_SERVER
-        $method = Input::server('REQUEST_METHOD');
+        $method     = Input::server('REQUEST_METHOD');
+        $headers    = Input::serverGetHeaders();
+
         // If it's a HEAD request override it to being GET and prevent any output, as per HTTP Specification
         // @url http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.4
         if (Input::server('REQUEST_METHOD') == 'HEAD') 
@@ -277,7 +290,6 @@ class Router
         } // If it's a POST request, check for a method override header
         elseif ( Input::server('REQUEST_METHOD') == 'POST') 
         {
-            $headers = Input::serverGetHeaders();
             if (isset($headers['x-http-method-override']) && in_array($headers['x-http-method-override'], array('PUT', 'DELETE', 'PATCH'))) 
             {
                 $method = $headers['x-http-method-override'];
@@ -286,6 +298,12 @@ class Router
             {
                 $method = $headers['x-http-method'];
             }
+        }
+        // IF HTTP_X_REQUESTED_WITH is equal to xmlhttprequest
+        if ( isset($headers['x-requested-with']) && strcasecmp($headers['x-requested-with'], 'xmlhttprequest') == 0 )
+        {
+            //Set our $isAjaxRequest to true.
+            $this->isAjaxRequest = true;
         }
         return strtoupper($method);
     }
