@@ -69,6 +69,10 @@ $myApp->responder()->respond( $myApp->run() );
 // TODO:
 // Add API Protection (oauth)
 
+// Unit Testing:
+// add class
+// build for all utils
+
 /*
 require_once CORE_DIR . "Utils/JwtClaim.php";
 

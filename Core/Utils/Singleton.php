@@ -7,6 +7,7 @@ class Singleton
     
     protected function  __construct() {}
     protected function  __clone() {}
+    private function    __wakeup() {}
 
     public static function getInstance()
     {
