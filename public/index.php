@@ -68,7 +68,6 @@ $myApp->responder()->respond( $myApp->run() );
 
 // TODO:
 // Add API Protection (oauth)
-// Add Ajax handling?
 
 /*
 require_once CORE_DIR . "Utils/JwtClaim.php";
