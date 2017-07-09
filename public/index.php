@@ -62,9 +62,9 @@ Core\Debug::debug('START [CORE VER]: ' . CORE_VER );
     //$myApp->responder()->respond( $myApp->run() );
 //}
 
-$myApp = Core\AppFactory::buildMvc( 'mike', false, Core\Responder::TYPE_HTML );
+//$myApp = Core\AppFactory::buildMvc( 'mike', false, Core\Responder::TYPE_HTML );
 
-$myApp->responder()->respond( $myApp->run() );
+//$myApp->responder()->respond( $myApp->run() );
 
 // TODO:
 // Add API Protection (oauth)

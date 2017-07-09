@@ -1,4 +1,6 @@
-<?php namespace DryMile\Core\Utils;
+<?php 
+
+namespace DryMile\Core\Utils;
 
 class LeakyBucket
 {
