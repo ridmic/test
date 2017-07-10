@@ -69,9 +69,12 @@ Core\Debug::debug('START [CORE VER]: ' . CORE_VER );
 // TODO:
 // Add API Protection (oauth)
 
+// TODO:
 // Unit Testing:
-// add class
-// build for all utils
+// add tests for utils
+
+// TODO:
+// Logger class
 
 /*
 require_once CORE_DIR . "Utils/JwtClaim.php";

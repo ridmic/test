@@ -218,7 +218,7 @@ class UnitTest
 	/**
 	 * Assert that an array doesn't have a key
 	 */
-	public function assert_doesnt_have_key($array, $key, $message = '') {
+	public function assert_does_not_have_key($array, $key, $message = '') {
 		$message = ($message) ? $message : $this->_($array) . " has the key " . $this->_($key);
 		return $this->assert(!isset($array[$key]), $message);
 	}
@@ -407,8 +407,3 @@ class UnitTest
 		}
 	}
 }
-/* --------------------------------------------------------------
- * EXCEPTIONS
- * ------------------------------------------------------------ */
-
-class UnitTestFailure extends \Exception { }
