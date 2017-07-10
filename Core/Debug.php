@@ -7,6 +7,7 @@ class Debug
     static protected  $showDate   = false;
     static protected  $showDebug  = true;
     static protected  $curIndent  = 0;
+    static public     $logger     = null;
     
     const        DBG_ALWAYS       = 0;
     const        DBG_DEBUG        = 1;
@@ -41,9 +42,9 @@ class Debug
           if ( self::$showDebug === true )
           {
               if ( self::$showDate )
-                print "[$dt] $sp $msg<br>\n";
+                self::output("[$dt] $sp $msg<br>");
               else
-                print "$sp $msg<br>";
+                self::output("$sp $msg<br>");
           }
        }
     } 
@@ -122,5 +123,15 @@ class Debug
         array_walk( $v, function(&$value, $key) { $value = print_r($value, true); } );
         self::_write( "FUNC <<: ".get_class($this)."::$f(".implode(', ', $v).") => retval(".print_r($vv, true).") : $detail", DBG_TRACE );
       }
+    }
+    
+    protected function output( $msg )
+    {
+        if ( is_null(self::$logger) )
+        {
+            echo $msg."\n";
+            return;
+        }
+        self::$logger->write( $msg );    
     }
 }

@@ -55,8 +55,12 @@ class App extends Object
         $this->logWrap      = $this->appConfig->get('logwrap', Utils\Logger::WRAP_DAILY );
 
         // Logger
-        $this->logger       = new Utils\Logger( $this->pathToLogs( $this->logName ), $this->logWrap );
-        
+        if ( is_null($this->logger) )
+        {
+            $this->logger   = new Utils\Logger( $this->pathToLogs( $this->logName ), $this->logWrap );
+            Debug::$logger = $this->logger;
+        }
+    
         // Defaults
         $this->useSessions  = $this->appConfig->get('sessions', $this->useSessions );
 

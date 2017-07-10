@@ -4,7 +4,7 @@ require __DIR__ . "/../Core/Config.php";
 
 use DryMile\Core as Core;
 
-Core\Debug::level( Core\Debug::DBG_ALWAYS);
+Core\Debug::level( Core\Debug::DBG_DEBUG);
 Core\Debug::showDateTime( false );
 
 Core\Debug::debug('START [CORE VER]: ' . CORE_VER );
@@ -76,6 +76,10 @@ $myApp->logger()->write( 'Hello World' );
 // add tests for utils
 
 // TODO:
-// Logger class
+// Merge Logger class and Debug class so we can log our debugs
+//
+// Create a screen logger to match the file logger
+// set the debug class to use the screen logger by default
+// allow it to use the file logger (or both)
 
 Core\Debug::debug('END');
