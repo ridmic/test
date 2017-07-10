@@ -11,7 +11,7 @@ class Debug
     const        DBG_ALWAYS       = 0;
     const        DBG_DEBUG        = 1;
     const        DBG_TRACE        = 2;
-    
+
     function __construct()
     {
     }

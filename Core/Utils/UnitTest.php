@@ -19,7 +19,7 @@ class UnitTest
 	public $end_time 		= 0;
 	public $assertion_count	= 0;
 	
-	protected $testing      = true;
+	public static $noRun    = false;
 	
 	/* --------------------------------------------------------------
 	 * AUTORUNNER
@@ -27,11 +27,12 @@ class UnitTest
 	/**
 	 * Run your tests!
 	 */
-	public static function test() 
+	public static function test( $class = null ) 
 	{
-		// Get all the declared classes
-		$classes = get_declared_classes();
+	    if ( self::$noRun ) return;
 
+		// Get all the declared classes
+		$classes = is_null($class) ? get_declared_classes() : [ $class ];
 		// Loop through them and if they're subclasses of
 		// UnitTest then instanciate and run them!
 		foreach ($classes as $class) 
@@ -304,7 +305,7 @@ class UnitTest
 					
 					$i++;
 					
-					if ($i == 20) {
+					if ($i > 20) {
 						$this->output("\n");
 						$i = 1;
 					}
@@ -312,7 +313,7 @@ class UnitTest
 			}
 		}
 		
-		$this->output("\n-------------------------------------\n\n");
+		$this->output("\n---------------------------------------\n");
 		
 		// Do we have any failures?
 		if ($failures) {
@@ -331,7 +332,7 @@ class UnitTest
 				$this->output("\n");
 			}
 			
-			$this->output("\n-------------------------------------\n\n");
+			$this->output("\n---------------------------------------\n");
 		}
 		
 		// Do we have any failures?
@@ -349,7 +350,7 @@ class UnitTest
 				}
 			}
 			
-			$this->output("\n-------------------------------------\n\n");
+			$this->output("\n---------------------------------------\n");
 		}
 		
 		// Good or bad?

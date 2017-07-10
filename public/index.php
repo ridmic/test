@@ -62,7 +62,9 @@ Core\Debug::debug('START [CORE VER]: ' . CORE_VER );
     //$myApp->responder()->respond( $myApp->run() );
 //}
 
-//$myApp = Core\AppFactory::buildMvc( 'mike', false, Core\Responder::TYPE_HTML );
+$myApp = Core\AppFactory::buildMvc( 'mike', false, Core\Responder::TYPE_HTML );
+
+$myApp->logger()->write( 'Hello World' );
 
 //$myApp->responder()->respond( $myApp->run() );
 
@@ -75,21 +77,5 @@ Core\Debug::debug('START [CORE VER]: ' . CORE_VER );
 
 // TODO:
 // Logger class
-
-/*
-require_once CORE_DIR . "Utils/JwtClaim.php";
-
-$jwt = $myApp->makeJwt() ;
-
-$jwt->addContextClaim( 'param1', 'value1' );
-$jwt->addContextClaim( 'param2', 'value2' );
-$jwt->addContextClaim( 'param3', 'value3' );
-
-
-$token  = $jwt->encode( $secret );
-
-var_dump( $token );
-var_dump(Core\Utils\Jwt::asArray( $token, $secret ) );
-*/
 
 Core\Debug::debug('END');

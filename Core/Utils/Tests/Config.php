@@ -7,7 +7,7 @@ use DryMile\Core\Utils as Utils;
 require_once __DIR__ .'/../UnitTest.php';
 require_once __DIR__ .'/../Config.php';
 
-class config_Test extends Utils\UnitTest 
+class Config_Test extends Utils\UnitTest 
 {
     // Load our test ini file
 	public function set_up() {

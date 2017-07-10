@@ -6,6 +6,7 @@ require_once "Router.php";
 require_once "Dispatcher.php";
 require_once "Utils/Session.php";
 require_once "Utils/JwtClaim.php";
+require_once "Utils/Logger.php";
 
 class App extends Object
 {
@@ -24,6 +25,9 @@ class App extends Object
     protected $router               = null;
     protected $dispatcher           = null;
     protected $responder            = null;
+    
+    protected $logger               = null;
+    protected $logName              = 'logFile';
 
     public function __construct( $name )
     {
@@ -47,7 +51,12 @@ class App extends Object
         $this->domain       = $this->appConfig->get('domain', $this->domain );
         $this->language     = $this->appConfig->get('language', $this->language );
         $this->testing      = $this->appConfig->get('testing', $this->testing );
+        $this->logName      = $this->appConfig->get('logfile', $this->name() );
+        $this->logWrap      = $this->appConfig->get('logwrap', Utils\Logger::WRAP_DAILY );
 
+        // Logger
+        $this->logger       = new Utils\Logger( $this->pathToLogs( $this->logName ), $this->logWrap );
+        
         // Defaults
         $this->useSessions  = $this->appConfig->get('sessions', $this->useSessions );
 
@@ -72,6 +81,8 @@ class App extends Object
     public function pathToConfig( $name, $ext='.ini' )      { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Config',   $name.$ext) ); }
     public function pathToLanguage( $name, $ext='.php' )    { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Language', $this->language, $name.$ext) ); }
     public function pathToPublic( $name, $ext='.php' )      { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Public',   $name.$ext) ); }
+    public function pathToLogs( $name, $ext='.log' )        { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Data', 'Logs', $name.$ext) ); }
+    public function pathToCache( $name, $ext='' )           { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Data', 'Cache', $name.$ext) ); }
 
     public function pathToCoreController($name,$ext='.php') { return $this->makePath( array( $this->rootPath, 'Core', 'Controllers', self::toClassName($name).$ext) ); }
     
@@ -89,6 +100,8 @@ class App extends Object
     public function language()                              { return $this->language; }
 
     public function session()                               { return $this->useSessions ? $this->session : die('Fatal Session Error'); }
+
+    public function logger()                                { return $this->logger; }
 
     public function makePath( $bits )
     {
