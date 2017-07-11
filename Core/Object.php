@@ -18,7 +18,6 @@ class Object
       return "Object(".get_class($this).")";
     }
     
-    
     // Converts url name (part1_part2) into a class name (Part1Part2)
     public static function toClassName( $name )
     {

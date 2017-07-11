@@ -5,8 +5,8 @@ require __DIR__ . "/../Core/Config.php";
 
 use DryMile\Core as Core;
 
-Core\Debug::level( Core\Debug::DBG_TRACE );
-Core\Debug::setLogger( new Core\Utils\HtmlLogger() );
+//Core\Debug::level( Core\Debug::DBG_TRACE );
+//Core\Debug::setLogger( new Core\Utils\HtmlLogger() );
 
 // ========================================================
 // We can create simple closure based app
@@ -43,27 +43,7 @@ Core\Debug::setLogger( new Core\Utils\HtmlLogger() );
 
 //$myApp = Core\AppFactory::buildMvc( 'roll_it', true, Core\Responder::TYPE_HTML );
 
-//$controller = $myApp->loadAltController( 'block_it' );
-//$controller = $myApp->loadCoreController( 'auth_api_key' );
-
-//$controller = $myApp->loadCoreControllerByName( 'AuthJwtToken' );
-
-//$secret     = 'iamasecretkey';
-
-//if ( !is_null($controller) )
-//{
-    //$controller->setApiKey( 'password' );
-    //$controller->setSecret( $secret );
-    //$controller->setJwtId( '28e17b24220fe49e0fc4583b8aa90d7cf3749dc51ec3f45707dee18c6ba35f07' );
-    //$controller->addContextClaim( 'param1', 'value1' );
-    //$controller->addContextClaim( 'param2', 'value2' );
-    //$controller->addContextClaim( 'param3', 'value3' );
-    //$myApp->responder()->respond( $myApp->run() );
-//}
-
 $myApp = Core\AppFactory::buildMvc( 'mike', false, Core\Responder::TYPE_HTML );
-
-//$myApp->logger()->write( 'Hello World' );
 
 //$myApp->responder()->respond( $myApp->run() );
 
@@ -73,4 +53,3 @@ $myApp = Core\AppFactory::buildMvc( 'mike', false, Core\Responder::TYPE_HTML );
 // TODO:
 // Unit Testing:
 // add tests for utils
-
