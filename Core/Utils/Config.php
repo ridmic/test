@@ -26,6 +26,19 @@ class Config
         return $result;
     }
     
+    public function exists( $index )
+    {
+        $bits       = explode( '.', $index );
+        $namespace  = $this->defaultNamespace; 
+        $result     = $default;
+        if ( count( $bits) > 1 )
+        {
+            $index      = array_pop( $bits );
+            $namespace  = implode( '.', $bits );
+        }
+        return isset($this->config[$namespace][$index] );
+    }
+
     public function loadConfig( $filename )
     {
         if ( $filename != $this->filename )

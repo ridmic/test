@@ -5,6 +5,9 @@ require __DIR__ . "/../Core/Config.php";
 
 use DryMile\Core as Core;
 
+Core\Debug::level( Core\Debug::DBG_TRACE );
+Core\Debug::setLogger( new Core\Utils\HtmlLogger() );
+
 // ========================================================
 // We can create simple closure based app
 // ========================================================
@@ -71,53 +74,3 @@ $myApp = Core\AppFactory::buildMvc( 'mike', false, Core\Responder::TYPE_HTML );
 // Unit Testing:
 // add tests for utils
 
-// TODO:
-// Merge Logger class and Debug class so we can log our debugs
-//
-// Create a screen logger to match the file logger
-// set the debug class to use the screen logger by default
-// allow it to use the file logger (or both)
-
-//$loggerConsole = new Core\Utils\HtmlLogger();
-
-//$loggerConsole->write( 'Hello World' );
-
-//$loggerConsole = new Utils\FileLogger( $this->pathToLogs( $this->logName ), $this->logWrap );
-
-//Core\Debug::setLogger( new Core\Utils\NullLogger() );
-//Core\Debug::setLogger( new Core\Utils\ConsoleLogger() );
-//Core\Debug::setLogger( new Core\Utils\HtmlLogger() );
-
-class aClass
-{
-    function aFunction( $p1, $p2 )
-    {
-        Core\Debug::traceEnterFunc();
-        
-        Core\Debug::debug('In aFunction' );
-        
-        $aClass = new anotherClass();
-        $aClass->aFunction( 'A', 'B' );
-
-        
-        Core\Debug::traceLeaveFunc();
-    }
-}
-
-class anotherClass
-{
-    function aFunction( $p1, $p2 )
-    {
-        Core\Debug::traceEnterFunc();
-        
-        Core\Debug::debug('In anothFunction' );
-        
-        Core\Debug::traceLeaveFunc();
-    }
-}
-
-$aClass = new aClass();
-$aClass->aFunction( 11, 22 );
-
-$aClass = new anotherClass();
-$aClass->aFunction( 111, 222 );

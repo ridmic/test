@@ -28,9 +28,9 @@ class App extends Object
     protected $responder            = null;
     
     protected $logger               = null;
-    protected $logName              = 'logFile';
+    protected $logName              = '-nolog-';
     
-    protected $debugLevel           = Debug::DBG_WRITE;
+    protected $debugLevel           = -1;
 
     public function __construct( $name )
     {
@@ -56,19 +56,31 @@ class App extends Object
         $this->testing      = $this->appConfig->get('testing', $this->testing );
         $this->debugLevel   = $this->appConfig->get('debuglevel', $this->debugLevel );
         $this->useSessions  = $this->appConfig->get('sessions', $this->useSessions );
-        $this->logName      = $this->appConfig->get('logfile', $this->name() );
+        $this->logName      = $this->appConfig->get('logfile', $this->logName );
+        $this->logName      = $this->logName == '-default-' ? $this->name() : $this->logName;
         $this->logWrap      = $this->appConfig->get('logwrap', Utils\FileLogger::WRAP_DAILY );
-
+        
         // These should only be called once but can be postponed by setting $full = false
         if ( $full && is_null($this->logger) )
         {
             // Create a log for our debug
-            Debug::level( $this->debugLevel );
-            Debug::addLogger( new Utils\FileLogger( $this->pathToLogs( $this->name.'-Debug' )) );
-            Debug::debug('[CORE VER]: ' . CORE_VER );
+            if ( $this->debugLevel == -1 )
+            {
+                // Suppress all debugging
+                Debug::addLogger( new Utils\NullLogger() );
+            }
+            else
+            {
+                Debug::level( $this->debugLevel );
+                Debug::addLogger( new Utils\FileLogger( $this->pathToLogs( $this->name.'-Debug' )) );
+                Debug::debug('[CORE VER]: ' . CORE_VER );
+            }
     
             // Logger
-            $this->logger = new Utils\FileLogger( $this->pathToLogs( $this->logName ), $this->logWrap );
+            if ( $this->logName == '-nolog-' )
+                $this->logger = new Utils\NullLogger();
+            else
+                $this->logger = new Utils\FileLogger( $this->pathToLogs( $this->logName ), $this->logWrap );
 
             // Create our session?
             if ( $this->useSessions )
