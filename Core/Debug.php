@@ -1,137 +1,135 @@
 <?php
 namespace DryMile\Core;
 
+require_once "Utils/Logger.php";
+
 class Debug
 {
-    static protected  $level      = 1; 
-    static protected  $showDate   = false;
-    static protected  $showDebug  = true;
-    static protected  $curIndent  = 0;
-    static public     $logger     = null;
+    static protected $level         = self::DBG_WRITE; 
+    static protected $showDate      = false;
+    static protected $showDebug     = true;
+    static protected $curIndent     = 0;
+    static protected $loggers       = [];
+    static protected $buffer        = [];
     
-    const        DBG_ALWAYS       = 0;
-    const        DBG_DEBUG        = 1;
-    const        DBG_TRACE        = 2;
+    const DBG_WRITE                 = 0;
+    const DBG_DEBUG                 = 1;
+    const DBG_TRACE                 = 2;
 
-    function __construct()
-    {
-    }
-    
-    function __destruct()
-    {
-    }
-    
     static function level( $level )
     {
-      self::$level = intval($level );
-    }
-    static function showDateTime( $b=true )
-    {
-      self::$showDate = $b === true;
+        self::$level = intval($level );
     }
     
-    static function _debug( $msg ) { self::$_write($msg, self::DBG_TRACE); }
-    static function _trace( $msg ) { self::$_write($msg, self::DBG_TRACE); }
-    static function _write( $msg, $level=1 )
+    static function setLogger( $logger )
     {
-      if ( $level <= self::$level )
-      {
-          $date = new \DateTime();
-          $dt   = $date->format('d/m/Y H:i:s');
-          $sp   = str_repeat( '. ', self::$curIndent );
-          if ( self::$showDebug === true )
-          {
-              if ( self::$showDate )
-                self::output("[$dt] $sp $msg<br>");
-              else
-                self::output("$sp $msg<br>");
-          }
-       }
-    } 
+        if ( $logger instanceof Utils\aLogger )
+        {
+            self::$loggers = [ $logger ];   
+        }
+    }
+
+    static function addLogger( $logger )
+    {
+        if ( $logger instanceof Utils\aLogger )
+        {
+            self::$loggers[] = $logger;   
+        }
+    }
+
+    static function write( $msg )   { self::_writeWithArgs( $msg, self::DBG_WRITE );  } 
+    static function debug( $msg )   { self::_writeWithArgs( $msg, self::DBG_DEBUG );  }
+    static function trace( $msg )   { self::_writeWithArgs( $msg, self::DBG_TRACE );  }
     
-    static function write( $msg ) 
-    { 
-      if ( self::DBG_ALWAYS <= self::$level )
-      {
-        $b = debug_backtrace(false,1);
-        $f = count($b) >= 1 ? $b[0]['function'] : '-unknown-';
-        $v = count($b) >= 1 ? $b[0]["args"] : array();
-
-        $file   = count($b) >= 1 ? basename($b[0]['file']) : '-unknown-';
-        $line   = count($b) >= 1 ? $b[0]['line'] : '-unknown-';
-        $detail = "{ $file @ $line }";
-          
-        array_walk( $v, function(&$value, $key) { $value = print_r($value, true); } );
-        array_shift($v);
-        $msg = vsprintf( $msg, $v );
-        self::_write( "$msg : $detail", DBG_ALWAYS );
-      }
-    }
-
-    static function debug( $msg )
-    {
-      if ( self::DBG_DEBUG <= self::$level )
-      {
-        $b = debug_backtrace(false,1);
-        $f = count($b) >= 1 ? $b[0]['function'] : '-unknown-';
-        $v = count($b) >= 1 ? $b[0]["args"] : array();
-
-        $file   = count($b) >= 1 ? basename($b[0]['file']) : '-unknown-';
-        $line   = count($b) >= 1 ? $b[0]['line'] : '-unknown-';
-        $detail = "{ $file @ $line }";
-          
-        array_walk( $v, function(&$value, $key) { $value = print_r($value, true); } );
-        array_shift($v);
-        $msg = vsprintf( $msg, $v );
-        self::_write( "$msg : $detail", DBG_DEBUG );
-      }
-    }
-
     static function traceEnterFunc()
     {
-      if ( self::DBG_TRACE <= self::$level )
-      {
-        $b = debug_backtrace(false,2);
-        $f = count($b) >= 2 ? $b[1]['function'] : '-unknown-';
-        $v = count($b) >= 2 ? $b[1]["args"] : array();
-
-        $file   = count($b) >= 2 ? basename($b[1]['file']) : '-unknown-';
-        $line   = count($b) >= 2 ? $b[1]['line'] : '-unknown-';
-        $detail = "{ $file @ $line }";
-          
-        array_walk( $v, function(&$value, $key) { $value = print_r( $value, true); } );
-        self::_write( "FUNC >>: ".get_class($this)."::$f(".implode(', ', $v).") : $detail", DBG_TRACE );
-
-        self::$curIndent += 2;
-      }
+        if ( empty(self::$loggers) || self::DBG_TRACE <= self::$level )
+        {
+            $b = debug_backtrace(false,2);
+            $f = count($b) >= 2 ? $b[1]['function'] : '-unknown-';
+            $v = count($b) >= 2 ? $b[1]["args"] : array();
+            $c = count($b) >= 2 ? $b[1]["class"] : '';
+            
+            $file   = count($b) >= 2 ? basename($b[1]['file']) : '-unknown-';
+            $line   = count($b) >= 2 ? $b[1]['line'] : '-unknown-';
+            $detail = "{ $file @ $line }";
+              
+            self::_write( "FUNC >>: $c::$f(...) : $detail", self::DBG_TRACE );
+            
+            self::$curIndent += 2;
+        }
     }
         
     public function traceLeaveFunc( $vv = '' )
     {
-      if ( self::DBG_TRACE <= self::$level )
-      {
-        self::$curIndent = max( 0, self::$curIndent - 2);
-        
-        $b = debug_backtrace(false,2);
-        $f = count($b) >= 2 ? $b[1]['function'] : '-unknown-';
-        $v = count($b) >= 2 ? $b[1]["args"] : array();
-          
-        $file   = count($b) >= 2 ? basename($b[1]['file']) : '-unknown-';
-        $line   = count($b) >= 2 ? $b[1]['line'] : '-unknown-';
-        $detail = "{ $file @ $line }";
-          
-        array_walk( $v, function(&$value, $key) { $value = print_r($value, true); } );
-        self::_write( "FUNC <<: ".get_class($this)."::$f(".implode(', ', $v).") => retval(".print_r($vv, true).") : $detail", DBG_TRACE );
-      }
+        if ( empty(self::$loggers) || self::DBG_TRACE <= self::$level )
+        {
+            self::$curIndent = max( 0, self::$curIndent - 2);
+            
+            $b = debug_backtrace(false,2);
+            $f = count($b) >= 2 ? $b[1]['function'] : '-unknown-';
+            $v = count($b) >= 2 ? $b[1]["args"] : array();
+            $c = count($b) >= 2 ? $b[1]["class"] : '';
+            
+            $file   = count($b) >= 2 ? basename($b[1]['file']) : '-unknown-';
+            $line   = count($b) >= 2 ? $b[1]['line'] : '-unknown-';
+            $detail = "{ $file @ $line }";
+            
+            self::_write( "FUNC <<: $c::$f( ... ) => retval($vv) : $detail", self::DBG_TRACE );
+        }
     }
     
-    protected function output( $msg )
-    {
-        if ( is_null(self::$logger) )
+    static protected function _writeWithArgs( $msg, $level ) 
+    { 
+        if ( empty(self::$loggers) || $level <= self::$level )
         {
-            echo $msg."\n";
-            return;
+            $b = debug_backtrace(false,2);
+            $f = count($b) >= 2 ? $b[1]['function'] : '-unknown-';
+            $v = count($b) >= 2 ? $b[1]["args"] : array();
+    
+            $file   = count($b) >= 2 ? basename($b[1]['file']) : '-unknown-';
+            $line   = count($b) >= 2 ? $b[0]['line'] : '-unknown-';
+            $detail = "{ $file @ $line }";
+              
+            array_walk( $v, function(&$value, $key) { $value = print_r($value, true); } );
+            array_shift($v);
+            $msg = vsprintf( $msg, $v );
+            
+            self::_write( "$msg : $detail", $level );
         }
-        self::$logger->write( $msg );    
+    }
+
+    static protected function _write( $msg, $level )
+    {
+        $sp = str_repeat( '.', self::$curIndent );
+        
+        if ( empty(self::$loggers) )
+        {
+            // Buffer whilst we await our logger to be assigned
+            if ( count(self::$buffer) < 1000 )
+                self::$buffer[] = [$level, "$sp$msg"];
+        }
+        else
+        {
+            // Output any buffered content
+            if ( count(self::$buffer) )
+            {
+                foreach ( self::$buffer as $buff )
+                    self::output( $buff[1], $buff[0] );
+                self::$buffer = [];            
+            }
+            // Output it
+            self::output( "$sp$msg", $level );
+        }
+    } 
+
+    static protected function output( $msg, $level )
+    {
+        if ( $level <= self::$level )
+        {
+            // output the message
+            foreach ( self::$loggers as $logger )
+                $logger->write( $msg );    
+        }
     }
 }

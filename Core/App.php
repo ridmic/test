@@ -18,6 +18,7 @@ class App extends Object
     protected $language             = 'en';
     protected $appConfig            = null;
     protected $testing              = false;
+    protected $initCount            = 0;
 
     protected $session              = null;
     protected $useSessions          = false;
@@ -28,6 +29,8 @@ class App extends Object
     
     protected $logger               = null;
     protected $logName              = 'logFile';
+    
+    protected $debugLevel           = Debug::DBG_WRITE;
 
     public function __construct( $name )
     {
@@ -37,7 +40,7 @@ class App extends Object
     }
     
     // Call this once you have set up the app to initialise it
-    public function init( $config = 'Application' )
+    public function init( $full = true, $config = 'Application' )
     {
         // Pull in our config
         $this->appConfig = new Utils\Config;
@@ -51,28 +54,32 @@ class App extends Object
         $this->domain       = $this->appConfig->get('domain', $this->domain );
         $this->language     = $this->appConfig->get('language', $this->language );
         $this->testing      = $this->appConfig->get('testing', $this->testing );
-        $this->logName      = $this->appConfig->get('logfile', $this->name() );
-        $this->logWrap      = $this->appConfig->get('logwrap', Utils\Logger::WRAP_DAILY );
-
-        // Logger
-        if ( is_null($this->logger) )
-        {
-            $this->logger   = new Utils\Logger( $this->pathToLogs( $this->logName ), $this->logWrap );
-            Debug::$logger = $this->logger;
-        }
-    
-        // Defaults
+        $this->debugLevel   = $this->appConfig->get('debuglevel', $this->debugLevel );
         $this->useSessions  = $this->appConfig->get('sessions', $this->useSessions );
+        $this->logName      = $this->appConfig->get('logfile', $this->name() );
+        $this->logWrap      = $this->appConfig->get('logwrap', Utils\FileLogger::WRAP_DAILY );
 
-        // Create our session?
-        if ( $this->useSessions )
+        // These should only be called once but can be postponed by setting $full = false
+        if ( $full && is_null($this->logger) )
         {
-            $this->session = new Utils\Session( $this->name() );
-            $this->session->start();
-            if ( !$this->session->isValid())
+            // Create a log for our debug
+            Debug::level( $this->debugLevel );
+            Debug::addLogger( new Utils\FileLogger( $this->pathToLogs( $this->name.'-Debug' )) );
+            Debug::debug('[CORE VER]: ' . CORE_VER );
+    
+            // Logger
+            $this->logger = new Utils\FileLogger( $this->pathToLogs( $this->logName ), $this->logWrap );
+
+            // Create our session?
+            if ( $this->useSessions )
             {
-                $this->session->destroy();
+                $this->session = new Utils\Session( $this->name() );
                 $this->session->start();
+                if ( !$this->session->isValid())
+                {
+                    $this->session->destroy();
+                    $this->session->start();
+                }
             }
         }
     }    
@@ -257,7 +264,7 @@ class AppFactory extends Object
         $app = new App( $name );
         $app->setRootPath(self::rootPath());
         
-        $app->init( $config );
+        $app->init( true, $config );
         $app->setRouter( new Router() );
         $app->setDispatcher( new Dispatcher( $app->router() ) );
         $app->setResponder( new Responder( $rType ) );
@@ -272,8 +279,8 @@ class AppFactory extends Object
         
         $app = new MvcApp( $name );
         $app->setRootPath(self::rootPath());
-
-        $app->init( $config );
+        
+        $app->init( false, $config );
         $app->setRouter( new Router() );
         $app->setDispatcher( new Dispatcher( $app->router() ) );
         $app->setResponder( new Responder( $rType ) );
@@ -290,8 +297,8 @@ class AppFactory extends Object
             Debug::debug("CONTROLLER (FILE): %s", $file );
             if ( file_exists($file))
             {
-                // Re-run our init to take note or any versioning
-                $app->init( $config );
+                // Re-run our init to take note of any versioning
+                $app->init( true, $config );
                 
                 require_once $file;
                 $class      = $app->classOfController($controller);

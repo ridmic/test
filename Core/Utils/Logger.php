@@ -1,6 +1,7 @@
 <?php namespace DryMile\Core\Utils;
 
-class Logger
+
+abstract class aLogger
 {
     const ERROR_LEVEL   = 255;
     const WRITE         = 0;
@@ -9,6 +10,71 @@ class Logger
     const WARNING       = 4;
     const ERROR         = 8;
 
+    public function __construct()  
+    {
+        $this->write("===================== STARTING =====================", 0);
+     }
+    public function __destruct()
+    {
+        $this->write("====================== ENDING ======================", 0);
+    }
+    
+    public function write( $message, $level = self::WRITE )
+    {
+        $date     = new \DateTime();
+        $preamble = $date->format('d/m/Y H:i:s');
+
+        switch($level)
+        {
+            case self::NOTICE:
+                $preamble = sprintf("[%s] {N} :", $preamble);
+                break;
+            case self::WARNING:
+                $preamble = sprintf("[%s] {W} :", $preamble);
+                break;
+            case self::ERROR:
+                $preamble = sprintf("[%s] {E} :", $preamble);
+                break;
+            case self::DEBUG:
+                $preamble = sprintf("[%s] {D} :", $preamble);
+                break;
+            default:
+                $preamble = sprintf("[%s]", $preamble);
+                break;
+        }
+        $message = sprintf("%s %s",  $preamble, $message);
+        $this->_write( $message );
+    }
+    
+    // Override this to actually 'write something out'
+    protected function _write( $message )    {  }
+}
+ 
+class NullLogger extends aLogger
+{
+    protected function _write( $message )
+    {
+    }    
+}
+
+class ConsoleLogger extends aLogger
+{
+    protected function _write( $message )
+    {
+        echo $message."\n";
+    }    
+}
+
+class HtmlLogger extends ConsoleLogger
+{
+    protected function _write( $message )
+    {
+        parent::_write( $message."<br />" );
+    }    
+}
+ 
+class FileLogger extends aLogger
+{
     const WRAP_NEVER    = 0;
     const WRAP_DAILY    = 1;
     const WRAP_WEEKLY   = 2;
@@ -21,45 +87,15 @@ class Logger
     public function __construct( $logFile, $wrapFile = self::WRAP_NEVER )  
     {
         $this->logfile = $this->makeFilename( $logFile, $wrapFile );
-        $this->write("===================== STARTING =====================", 0);
-     }
-    public function __destruct()
-    {
-        $this->write("====================== ENDING ======================", 0);
+        // If we are not wrapping, remove the file before we start
+        if ( $wrapFile == self::WRAP_NEVER )
+            @unlink( $this->logfile );
+            
+        parent::__construct();
     }
-    
+
     public function setLogFile( $logFile )  { $this->logfile = $logFile; }
-    
-    public function write( $message, $level = self::WRITE )
-    {
-        if ( ! is_null($this->logfile) )
-        {
-            $date     = new \DateTime();
-            $preamble = $date->format('d/m/Y H:i:s');
-    
-            switch($level)
-            {
-                case self::NOTICE:
-                    $preamble = sprintf("[%s] {N} :", $preamble);
-                    break;
-                case self::WARNING:
-                    $preamble = sprintf("[%s] {W} :", $preamble);
-                    break;
-                case self::ERROR:
-                    $preamble = sprintf("[%s] {E} :", $preamble);
-                    break;
-                case self::DEBUG:
-                    $preamble = sprintf("[%s] {D} :", $preamble);
-                    break;
-                default:
-                    $preamble = sprintf("[%s]", $preamble);
-                    break;
-            }
-            $message = sprintf("%s %s\n",  $preamble, $message);
-            file_put_contents($this->logfile, $message , FILE_APPEND | LOCK_EX);
-        }
-    }
-    
+
     public function makeFilename( $path, $wrapFile = self::WRAP_NEVER )
     {
         $dir        = dirname( $path );
@@ -91,5 +127,13 @@ class Logger
                 break;
         }
         return $dir == '.' ? "$filename.$ext" : "$dir/$filename.$ext";
+    }
+    
+    protected function _write( $message )
+    {
+        if ( ! is_null($this->logfile) )
+        {
+            file_put_contents($this->logfile, $message."\n" , FILE_APPEND | LOCK_EX);
+        }
     }
 }

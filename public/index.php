@@ -1,14 +1,10 @@
 <?php
+
 // Pull in our framework config
 require __DIR__ . "/../Core/Config.php";
 
 use DryMile\Core as Core;
 
-Core\Debug::level( Core\Debug::DBG_DEBUG);
-Core\Debug::showDateTime( false );
-
-Core\Debug::debug('START [CORE VER]: ' . CORE_VER );
- 
 // ========================================================
 // We can create simple closure based app
 // ========================================================
@@ -64,7 +60,7 @@ Core\Debug::debug('START [CORE VER]: ' . CORE_VER );
 
 $myApp = Core\AppFactory::buildMvc( 'mike', false, Core\Responder::TYPE_HTML );
 
-$myApp->logger()->write( 'Hello World' );
+//$myApp->logger()->write( 'Hello World' );
 
 //$myApp->responder()->respond( $myApp->run() );
 
@@ -82,4 +78,46 @@ $myApp->logger()->write( 'Hello World' );
 // set the debug class to use the screen logger by default
 // allow it to use the file logger (or both)
 
-Core\Debug::debug('END');
+//$loggerConsole = new Core\Utils\HtmlLogger();
+
+//$loggerConsole->write( 'Hello World' );
+
+//$loggerConsole = new Utils\FileLogger( $this->pathToLogs( $this->logName ), $this->logWrap );
+
+//Core\Debug::setLogger( new Core\Utils\NullLogger() );
+//Core\Debug::setLogger( new Core\Utils\ConsoleLogger() );
+//Core\Debug::setLogger( new Core\Utils\HtmlLogger() );
+
+class aClass
+{
+    function aFunction( $p1, $p2 )
+    {
+        Core\Debug::traceEnterFunc();
+        
+        Core\Debug::debug('In aFunction' );
+        
+        $aClass = new anotherClass();
+        $aClass->aFunction( 'A', 'B' );
+
+        
+        Core\Debug::traceLeaveFunc();
+    }
+}
+
+class anotherClass
+{
+    function aFunction( $p1, $p2 )
+    {
+        Core\Debug::traceEnterFunc();
+        
+        Core\Debug::debug('In anothFunction' );
+        
+        Core\Debug::traceLeaveFunc();
+    }
+}
+
+$aClass = new aClass();
+$aClass->aFunction( 11, 22 );
+
+$aClass = new anotherClass();
+$aClass->aFunction( 111, 222 );
