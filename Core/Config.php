@@ -1,7 +1,5 @@
 <?php
 
-namespace DryMile\Core;
-
 // Define our helpers
 define("CORE_DIR", __DIR__.'/' );
 define("CORE_VER_MAJOR", '0' );

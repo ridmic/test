@@ -1,6 +1,6 @@
-<?php
+<?php namespace DryMile\Core\Utils;
 
-namespace DryMile\Core\Utils;
+require_once "Logger.php";
 
 /* --------------------------------------------------------------
  * UNIT TESTER
@@ -20,6 +20,7 @@ class UnitTest
 	public $assertion_count	= 0;
 	
 	public static $noRun    = false;
+    public static $logger   = null;
 	
 	/* --------------------------------------------------------------
 	 * AUTORUNNER
@@ -67,7 +68,10 @@ class UnitTest
 	
 	public function __construct( $testing = false ) 
 	{
-		$this->testing = $testing;
+		$this->testing  = $testing;
+		if ( is_null(self::$logger) )
+            self::$logger = new ConsoleLogger();
+        self::$logger->timestamp( false );
 	}
 	
 	/**
@@ -290,49 +294,57 @@ class UnitTest
 		$i = 1;
 		
 		// Print out the running status of each method.
-		foreach ($this->results as $unit_test => $results) {
-			foreach ($results as $result => $values) {
-				foreach ($values as $value) {
+		$line = '';
+		foreach ($this->results as $unit_test => $results) 
+		{
+			foreach ($results as $result => $values) 
+			{
+				foreach ($values as $value) 
+				{
 					$this->assertion_count++;
 					
-					switch ($result) {
-						case 'failures': $this->output('F '); $failures[$unit_test][] = $value; break;
-						case 'errors': $this->output('E '); $errors[$unit_test][] = $value; break;
+					switch ($result) 
+					{
+						case 'failures': $line = $line.'F '; $failures[$unit_test][] = $value; break;
+						case 'errors':   $line = $line.'E '; $errors[$unit_test][] = $value; break;
 					
 						default:
-						case 'successes': $this->output('T '); break;
+						case 'successes': $line = $line.'T '; break;
 					}
 					
 					$i++;
 					
-					if ($i > 20) {
-						$this->output("\n");
+					if ($i > 20) 
+					{
+						$this->output("$line");
+		                $line = '';
 						$i = 1;
 					}
 				}
 			}
 		}
+		$this->output("$line");
 		
-		$this->output("\n---------------------------------------\n");
+		$this->output("---------------------------------------");
 		
 		// Do we have any failures?
 		if ($failures) {
 			$good = FALSE;
 			
 			foreach ($failures as $unit_test => $messages) {
-				$this->output("Failures!\n");
-				$this->output("=========\n");
+				$this->output("Failures!");
+				$this->output("=========");
 				
-				$this->output($unit_test . "():\n");
+				$this->output($unit_test . "():");
 				
 				foreach ($messages as $message) {
-					$this->output("\t- " . $message."\n");
+					$this->output("  - " . $message);
 				}
 				
-				$this->output("\n");
+				$this->output("");
 			}
 			
-			$this->output("\n---------------------------------------\n");
+			$this->output("---------------------------------------");
 		}
 		
 		// Do we have any failures?
@@ -340,43 +352,41 @@ class UnitTest
 			$good = FALSE;
 			
 			foreach ($errors as $unit_test => $messages) {
-				$this->output("Errors!\n");
-				$this->output("=======\n");
+				$this->output("Errors!");
+				$this->output("=======");
 				
-				$this->output($unit_test . "():\n");
+				$this->output($unit_test . "():");
 				
 				foreach ($messages as $message) {
-					$this->output("\t- " . $message."\n");
+					$this->output("  - " . $message);
 				}
 			}
 			
-			$this->output("\n---------------------------------------\n");
-		}
-		
-		// Good or bad?
-		if ($good) {
-			$this->output("\n[Cool! All your tests ran perfectly.\n\n");
-		} else {
-			$this->output("\n[Not so cool :( there was a problem running your tests!\n\n");
+			$this->output("---------------------------------------");
 		}
 		
 		// Finally, test stats
-		$this->output("Ran " . 
-			 $this->assertion_count . 
-			 " assertion(s) in " . 
-			 number_format(($this->end_time - $this->start_time), 6) . 
-			 " seconds");
-		$this->output("\n\n");
+		$this->output("Ran ".$this->assertion_count." assertion(s) in ".
+		              number_format(($this->end_time - $this->start_time), 6)." seconds");
+		$this->output("");
+
+		// Good or bad?
+		if ( $good ) 
+			$this->output("[Cool! All your tests ran perfectly.");
+		else 
+			$this->output("[Not so cool :( there was a problem running your tests!");
 	}
 	
 	/* --------------------------------------------------------------
 	 * UTILITY/HELPERS
 	 * ------------------------------------------------------------ */
 	
-	protected function output( $msg )
+	public function output( $msg )
 	{
-	    //echo nl2br($msg);
-	    echo $msg;
+        if ( ! is_null(self::$logger) )
+        {
+            self::$logger->write( $msg );    
+        }
 	}
 	
 	/**

@@ -1,11 +1,11 @@
 <?php
 namespace DryMile\Core;
 
+include_once "Utils/Object.php";
 include_once "Debug.php";
-include_once "Object.php";
 include_once "ResponseCode.php";
 
-class Responder
+class Responder extends Utils\Object
 {
     const       TYPE_TEXT       = 0;
     const       TYPE_JSON       = 1;

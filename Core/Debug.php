@@ -1,5 +1,4 @@
-<?php
-namespace DryMile\Core;
+<?php namespace DryMile\Core;
 
 require_once "Utils/Logger.php";
 

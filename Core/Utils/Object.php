@@ -1,7 +1,5 @@
 <?php
-namespace DryMile\Core;
-
-include_once "Debug.php";
+namespace DryMile\Core\Utils;
 
 class Object
 {

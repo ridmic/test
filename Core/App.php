@@ -1,14 +1,17 @@
 <?php
+
 namespace DryMile\Core;
 
 require_once "Utils/Config.php";
-require_once "Router.php";
-require_once "Dispatcher.php";
+include_once "Utils/Object.php";
 require_once "Utils/Session.php";
 require_once "Utils/JwtClaim.php";
 require_once "Utils/Logger.php";
+include_once "Debug.php";
+require_once "Router.php";
+require_once "Dispatcher.php";
 
-class App extends Object
+class App extends Utils\Object
 {
     protected $domain               = 'unknown';
     protected $name                 = 'unknown';
@@ -19,10 +22,8 @@ class App extends Object
     protected $appConfig            = null;
     protected $testing              = false;
     protected $initCount            = 0;
-
     protected $session              = null;
     protected $useSessions          = false;
-
     protected $router               = null;
     protected $dispatcher           = null;
     protected $responder            = null;
@@ -31,7 +32,6 @@ class App extends Object
     protected $logName              = '-nolog-';
     
     protected $debugLevel           = -1;
-
     public function __construct( $name )
     {
         parent::__construct();
@@ -45,7 +45,6 @@ class App extends Object
         // Pull in our config
         $this->appConfig = new Utils\Config;
         $this->appConfig->loadConfig( $this->pathToConfig( $config ) );
-
         //set timezone
         $timezone = $this->appConfig->get('timezone', 'Europe/London' );
         date_default_timezone_set($timezone);
@@ -81,7 +80,6 @@ class App extends Object
                 $this->logger = new Utils\NullLogger();
             else
                 $this->logger = new Utils\FileLogger( $this->pathToLogs( $this->logName ), $this->logWrap );
-
             // Create our session?
             if ( $this->useSessions )
             {
@@ -95,22 +93,18 @@ class App extends Object
             }
         }
     }    
-
     public function appRoot()                               { return $this->makePath( array( $this->rootPath, $this->nameAsPath(), 'App') ); }
     public function urlRoot()                               { return $this->rootURL; }
     public function pathRoot()                              { return $this->rootPath; }
-
     public function pathToApp( $name, $ext='.php' )         { return $this->makePath( array( $this->appRoot(), $name.$ext) ); }
     public function pathToConfig( $name, $ext='.ini' )      { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Config',   $name.$ext) ); }
     public function pathToLanguage( $name, $ext='.php' )    { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Language', $this->language, $name.$ext) ); }
     public function pathToPublic( $name, $ext='.php' )      { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Public',   $name.$ext) ); }
     public function pathToLogs( $name, $ext='.log' )        { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Data', 'Logs', $name.$ext) ); }
     public function pathToCache( $name, $ext='' )           { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Data', 'Cache', $name.$ext) ); }
-
     public function pathToCoreController($name,$ext='.php') { return $this->makePath( array( $this->rootPath, 'Core', 'Controllers', self::toClassName($name).$ext) ); }
     
     public function isTesting()                             { return $this->testing; }
-
     public function setName( $name )                        { $this->name = $name; return $this; }
     public function name()                                  { return $this->name; }
     public function setVersion( $version )                  { $this->version = $version; return $version; }
@@ -121,11 +115,8 @@ class App extends Object
  
     public function setLanguage( $code )                    { $this->language = $code; return $this; }
     public function language()                              { return $this->language; }
-
     public function session()                               { return $this->useSessions ? $this->session : die('Fatal Session Error'); }
-
     public function logger()                                { return $this->logger; }
-
     public function makePath( $bits )
     {
         return implode( '/', $bits );
@@ -134,7 +125,6 @@ class App extends Object
     {
         $this->rootPath  = rtrim( $path, '/' );
     }
-
     public function setRootUrl( $url )
     {
         $this->rootURL = rtrim( $url, '/' );
@@ -153,12 +143,10 @@ class App extends Object
     {
         return $this->dispatcher()->run();
     }
-
     public function runRest()
     {
         return $this->dispatcher()->runRest();
     }
-
     // Helpers
     public function config( $index, $default=null )
     {
@@ -197,7 +185,6 @@ class App extends Object
     public function loadCoreController( $controller )
     {
         $file = $this->pathToCoreController( $controller );
-
         Debug::debug("CORE CONTROLLER (FILE): %s", $file );
         if ( file_exists($file))
         {
@@ -207,7 +194,6 @@ class App extends Object
             if ( class_exists($class) )
             {
                 Debug::debug("CORE CONTROLLER (CREATED)" );
-
                 return new $class( $this, self::toClassName($controller) );
             }
         }
@@ -228,16 +214,13 @@ class App extends Object
         return $jwt;
     }
 }
-
 class MvcApp extends App
 {
     // Helpers
     public function pathToView( $name, $ext='.php' )        { return $this->makePath( array( $this->appRoot(), 'Views', $name.$ext) ); }
     public function pathToController( $name, $ext='.php' )  { return $this->makePath( array( $this->appRoot(), 'Controllers', self::toClassName($name).$ext) ); }
     public function pathToModel( $name, $ext='.php' )       { return $this->makePath( array( $this->appRoot(), 'Models', $name.$ext) ); }
-
     public function classOfController( $name )              { return "\\DryMile\\".$this->name()."\\".self::toClassName($name).'Controller'; }
-
     public function loadAltControllerByName( $controller )
     {
         return $this->loadAltController( self::toURLName($controller) );
@@ -246,7 +229,6 @@ class MvcApp extends App
     public function loadAltController( $controller )
     {
         $file = $this->pathToController( $controller );
-
         Debug::debug("ALT CONTROLLER (FILE): %s", $file );
         if ( file_exists($file))
         {
@@ -256,7 +238,6 @@ class MvcApp extends App
             if ( class_exists($class) )
             {
                 Debug::debug("ALT CONTROLLER (CREATED)" );
-
                 return new $class( $this, self::toClassName($controller) );
             }
         }
@@ -264,8 +245,7 @@ class MvcApp extends App
     }
     
 }
-
-class AppFactory extends Object
+class AppFactory extends Utils\Object
 {
     public static function rootPath()   { return __DIR__.'/../'; }
     
@@ -284,7 +264,6 @@ class AppFactory extends Object
         Debug::traceLeaveFunc($app);
         return $app;
     }
-
     public static function buildMvc( $name, $versioned = false, $rType = Responder::TYPE_JSON, $config = 'Application' )
     {
         Debug::traceEnterFunc();
@@ -318,11 +297,9 @@ class AppFactory extends Object
                 if ( class_exists($class) )
                 {
                     Debug::debug("CONTROLLER (CREATED)" );
-
                     $baseRoute = rtrim( implode( '/', [$controller, $app->version()] ), '/');
                     Debug::debug( "Base Route: %s",$baseRoute );
                     $app->router()->setBaseRoute( $baseRoute );
-
                     $controller = new $class( $app, self::toClassName($controller) );
                 }
             }
@@ -331,4 +308,3 @@ class AppFactory extends Object
         return $app;
     }
 }
-

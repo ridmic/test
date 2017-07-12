@@ -1,48 +1,52 @@
 <?php namespace DryMile\Core\Utils;
 
-
 abstract class aLogger
 {
-    const ERROR_LEVEL   = 255;
-    const WRITE         = 0;
-    const DEBUG         = 1;
-    const NOTICE        = 2;
-    const WARNING       = 4;
-    const ERROR         = 8;
+    const ERROR_LEVEL       = 255;
+    const WRITE             = 0;
+    const DEBUG             = 1;
+    const NOTICE            = 2;
+    const WARNING           = 4;
+    const ERROR             = 8;
+    
+    protected $timestamp    = true;
 
     public function __construct()  
     {
+        $this->timestamp = true;
         $this->write("===================== STARTING =====================", 0);
      }
     public function __destruct()
     {
+        $this->timestamp = true;
         $this->write("====================== ENDING ======================", 0);
     }
+    
+    public function timestamp( $b ) { $this->timestamp = $b === true ? true : false; }
     
     public function write( $message, $level = self::WRITE )
     {
         $date     = new \DateTime();
-        $preamble = $date->format('d/m/Y H:i:s');
+        $preamble = $this->timestamp ? "[".$date->format('d/m/Y H:i:s')."] " : '';
 
         switch($level)
         {
             case self::NOTICE:
-                $preamble = sprintf("[%s] {N} :", $preamble);
+                $preamble = sprintf("%s{N} :", $preamble);
                 break;
             case self::WARNING:
-                $preamble = sprintf("[%s] {W} :", $preamble);
+                $preamble = sprintf("%s{W} :", $preamble);
                 break;
             case self::ERROR:
-                $preamble = sprintf("[%s] {E} :", $preamble);
+                $preamble = sprintf("%s{E} :", $preamble);
                 break;
             case self::DEBUG:
-                $preamble = sprintf("[%s] {D} :", $preamble);
+                $preamble = sprintf("%s{D} :", $preamble);
                 break;
             default:
-                $preamble = sprintf("[%s]", $preamble);
                 break;
         }
-        $message = sprintf("%s %s",  $preamble, $message);
+        $message = sprintf("%s%s",  $preamble, $message);
         $this->_write( $message );
     }
     
@@ -69,7 +73,7 @@ class HtmlLogger extends ConsoleLogger
 {
     protected function _write( $message )
     {
-        parent::_write( $message."<br />" );
+        parent::_write( nl2br($message)."<br />" );
     }    
 }
  

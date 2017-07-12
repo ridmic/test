@@ -1,13 +1,13 @@
 <?php
 namespace DryMile\Core;
 
+include_once "Utils/Object.php";
 include_once "Utils/Input.php";
 include_once "Debug.php";
-include_once "Object.php";
 
 use \DryMile\Core\Utils\Input    as Input;
 
-class RouteList extends Object
+class RouteList extends Utils\Object
 {
     const       REGVAL          = '/({:.+?})/';    
     protected   $patterns       = [ ':any'      => '(.*)',
@@ -166,7 +166,7 @@ class RouteList extends Object
     }
 }
 
-class Router
+class Router extends Utils\Object
 {
     protected   $routes         = null;
     protected   $before         = null;

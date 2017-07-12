@@ -1,11 +1,11 @@
 <?php
 namespace DryMile\Core;
 
+include_once "Utils/Object.php";
 include_once "Debug.php";
-include_once "Object.php";
 include_once "ResponseCode.php";
 
-class View extends Object
+class View extends Utils\Object
 {
     protected $app          = null;
     protected $useFolders   = false;

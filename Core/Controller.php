@@ -1,12 +1,12 @@
 <?php
 namespace DryMile\Core;
 
+include_once "Utils/Object.php";
 include_once "Debug.php";
-include_once "Object.php";
 include_once "ResponseCode.php";
 include_once "View.php";
 
-class Controller extends Object
+class Controller extends Utils\Object
 {
     protected $app          = null;
     protected $router       = null;   

@@ -3,10 +3,11 @@
 // Pull in our framework config
 require __DIR__ . "/../Core/Config.php";
 
-use DryMile\Core as Core;
+use DryMile\Core        as Core;
+use DryMile\Core\Utils  as Utils;
 
-//Core\Debug::level( Core\Debug::DBG_TRACE );
-//Core\Debug::setLogger( new Core\Utils\HtmlLogger() );
+Core\Debug::level( Core\Debug::DBG_TRACE );
+Core\Debug::setLogger( new Utils\HtmlLogger() );
 
 // ========================================================
 // We can create simple closure based app
@@ -53,3 +54,4 @@ $myApp = Core\AppFactory::buildMvc( 'mike', false, Core\Responder::TYPE_HTML );
 // TODO:
 // Unit Testing:
 // add tests for utils
+
