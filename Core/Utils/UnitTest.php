@@ -287,9 +287,15 @@ class UnitTest
 	 * Loop through the test results and output them
 	 * to the console!
 	 */
-	public function print_results() {
-		$failures = array();
-		$errors = array();
+	public function print_results() 
+	{
+	    // Must have a logger installed
+        if ( is_null(self::$logger) )
+            return;
+
+		$failures   = array();
+		$errors     = array();
+		$successes  = array();
 		$good = TRUE;
 		$i = 1;
 		
@@ -305,76 +311,72 @@ class UnitTest
 					
 					switch ($result) 
 					{
-						case 'failures': $line = $line.'F '; $failures[$unit_test][] = $value; break;
-						case 'errors':   $line = $line.'E '; $errors[$unit_test][] = $value; break;
+						case 'failures' : $line = $line.'F '; $failures[$unit_test][] = $value; break;
+						case 'errors'   : $line = $line.'E '; $errors[$unit_test][] = $value; break;
 					
 						default:
-						case 'successes': $line = $line.'T '; break;
+						case 'successes': $line = $line.'T '; $successes[$unit_test][] = $value;break;
 					}
 					
 					$i++;
 					
-					if ($i > 20) 
+					if ($i > (self::$logger->pageWidth() / 2)) 
 					{
-						$this->output("$line");
+					    self::$logger->write($line);
 		                $line = '';
 						$i = 1;
 					}
 				}
 			}
 		}
-		$this->output("$line");
-		
-		$this->output("---------------------------------------");
-		
+		self::$logger->write($line);
+	    self::$logger->writeDivider_H4();
+
 		// Do we have any failures?
-		if ($failures) {
+		if ( $failures ) 
+		{
 			$good = FALSE;
-			
-			foreach ($failures as $unit_test => $messages) {
-				$this->output("Failures!");
-				$this->output("=========");
-				
-				$this->output($unit_test . "():");
-				
-				foreach ($messages as $message) {
-					$this->output("  - " . $message);
-				}
-				
-				$this->output("");
+			foreach ($failures as $unit_test => $messages) 
+			{
+        	    self::$logger->writeBox("Failures!");
+			    self::$logger->writeBoxRow($unit_test . "():", aLogger::BOX_ROW_LEFT );
+				foreach ($messages as $message) 
+					self::$logger->writeBoxRow("  - " . $message, aLogger::BOX_ROW_LEFT );
+			    self::$logger->writeBoxFooter();
 			}
-			
-			$this->output("---------------------------------------");
+    	    self::$logger->writeDivider_H4();
 		}
 		
 		// Do we have any failures?
-		if ($errors) {
+		if ( $errors ) 
+		{
 			$good = FALSE;
-			
-			foreach ($errors as $unit_test => $messages) {
-				$this->output("Errors!");
-				$this->output("=======");
-				
-				$this->output($unit_test . "():");
-				
-				foreach ($messages as $message) {
-					$this->output("  - " . $message);
-				}
+			foreach ($errors as $unit_test => $messages) 
+			{
+        	    self::$logger->writeBox("Failures!");
+			    self::$logger->writeBoxRow($unit_test . "():", aLogger::BOX_ROW_LEFT );
+				foreach ($messages as $message) 
+					self::$logger->writeBoxRow("  - " . $message, aLogger::BOX_ROW_LEFT );
+			    self::$logger->writeBoxFooter();
 			}
-			
-			$this->output("---------------------------------------");
+    	    self::$logger->writeDivider_H4();
 		}
 		
 		// Finally, test stats
-		$this->output("Ran ".$this->assertion_count." assertion(s) in ".
-		              number_format(($this->end_time - $this->start_time), 6)." seconds");
-		$this->output("");
+	    self::$logger->write("RESULTS: Ran ".$this->assertion_count." assertion(s) in ". number_format(($this->end_time - $this->start_time), 6)." seconds");
 
 		// Good or bad?
 		if ( $good ) 
-			$this->output("[Cool! All your tests ran perfectly.");
+		{
+		    self::$logger->write("SUCCESS: All tests ran without failures.");
+		    
+		}
 		else 
-			$this->output("[Not so cool :( there was a problem running your tests!");
+		{
+    	    self::$logger->write("PASSED : ".count($successes) );
+    	    self::$logger->write("FAILED : ".count($failures) );
+    	    self::$logger->write("ERRORS : ".count($errors) );
+		}
 	}
 	
 	/* --------------------------------------------------------------

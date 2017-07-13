@@ -8,21 +8,99 @@ abstract class aLogger
     const NOTICE            = 2;
     const WARNING           = 4;
     const ERROR             = 8;
-    
+
+    const DIV_H1            = '#';
+    const DIV_H2            = '=';
+    const DIV_H2R           = '|';
+    const DIV_H3            = '*';
+    const DIV_H4            = '-';
+    const DIV_H4R           = '|';
+
+    const BOX_CORNER        = '+';
+    const BOX_HEADER        = '-';
+    const BOX_ROW           = '|';
+
+    const BOX_ROW_LEFT      = STR_PAD_RIGHT;
+    const BOX_ROW_CENTER    = STR_PAD_BOTH;
+    const BOX_ROW_RIGHT     = STR_PAD_LEFT;
+
     protected $timestamp    = true;
+    protected $pageWidth    = 80;
 
     public function __construct()  
     {
         $this->timestamp = true;
-        $this->write("===================== STARTING =====================", 0);
-     }
+        $this->writeHeader_H1("STARTING");
+
+    }
     public function __destruct()
     {
         $this->timestamp = true;
-        $this->write("====================== ENDING ======================", 0);
+        $this->writeHeader_H1("ENDING");
     }
     
-    public function timestamp( $b ) { $this->timestamp = $b === true ? true : false; }
+    public function timestamp( $b )     { $this->timestamp = $b === true ? true : false; }
+    public function pageWidth()         { return $this->pageWidth; }
+    public function setPageWidth( $w )  { $this->pageWidth = max( 10, intval($w)); }
+    
+    public function writeHeader_H1( $str ) { $this->writeDivider( " $str ", self::DIV_H1); }
+    public function writeHeader_H2( $str ) { $this->writeDivider( " $str ", self::DIV_H2); }
+    public function writeHeader_H3( $str ) { $this->writeDivider( " $str ", self::DIV_H3); }
+    public function writeHeader_H4( $str ) { $this->writeDivider( " $str ", self::DIV_H4); }
+
+    public function writeDivider_H1() { $this->writeDivider( '', self::DIV_H1); }
+    public function writeDivider_H2() { $this->writeDivider( '', self::DIV_H2); }
+    public function writeDivider_H3() { $this->writeDivider( '', self::DIV_H3); }
+    public function writeDivider_H4() { $this->writeDivider( '', self::DIV_H4); }
+    public function writeDivider( $Str = '', $pad )
+    {
+        $this->write( str_pad( $str, $this->pageWidth, $pad, STR_PAD_BOTH ), 0 );
+    }
+    
+    public function writeDividerRow_H1( $str )  { $this->writeDividerRow( $str, self::DIV_H1); }
+    public function writeDividerRow_H2( $str )  { $this->writeDividerRow( $str, self::DIV_H2); }
+    public function writeDividerRow_H3( $str )  { $this->writeDividerRow( $str, self::DIV_H3); }
+    public function writeDividerRow_H4( $str )  { $this->writeDividerRow( $str, self::DIV_H4); }
+    public function writeDividerRow( $str, $pad, $align= self::BOX_ROW_CENTER )
+    {
+        $this->write( $pad.' ' . str_pad( "$str", $this->pageWidth - 2 -(2*strlen($pad)), ' ', $align ) . ' '. $pad, 0 );
+    }
+
+    public function writeHeading_H1( $str ) { $this->writeHeading( $str, self::DIV_H1); }
+    public function writeHeading_H2( $str ) { $this->writeHeading( $str, self::DIV_H2); }
+    public function writeHeading_H3( $str ) { $this->writeHeading( $str, self::DIV_H3); }
+    public function writeHeading_H4( $str ) { $this->writeHeading( $str, self::DIV_H4); }
+    public function writeHeading( $str, $pad )
+    {
+        $this->writeDivider( '', $pad );
+        $this->writeDividerRow( $str, $pad );
+        $this->writeDivider( '', $pad );
+    }
+
+    public function writeBox( $str = '' )
+    {
+        $this->writeBoxHeader();
+        $this->writeBoxRow( $str );
+        $this->writeBoxFooter();
+    }
+    
+    public function writeBoxHeader( $str = '' )
+    {
+        $this->write( self::BOX_CORNER . str_pad( "$str", $this->pageWidth - 2,self::BOX_HEADER, STR_PAD_BOTH ) . self::BOX_CORNER, 0 );
+    }
+    public function writeBoxRow( $str = '', $align= self::BOX_ROW_CENTER )
+    {
+        $this->write( self::BOX_ROW.' ' . str_pad( "$str", $this->pageWidth - 4, ' ', $align ) . ' '. self::BOX_ROW, 0 );
+    }
+    public function writeBoxFooter( $str = '' )
+    {
+        $this->write( self::BOX_CORNER . str_pad( "$str", $this->pageWidth - 2,self::BOX_HEADER, STR_PAD_BOTH ) . self::BOX_CORNER, 0 );
+    }
+
+    public function writeLn()   
+    {
+        $this->write('');    
+    }
     
     public function write( $message, $level = self::WRITE )
     {

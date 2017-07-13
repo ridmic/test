@@ -8,17 +8,18 @@ require_once __DIR__ .'/../Logger.php';
 // Run all of the tests in this folder
 $path = __DIR__;
 
-$logger = new Utils\ConsoleLogger();
+if ( !isset($logger) )
+    $logger = new Utils\ConsoleLogger();
 $logger->timestamp( false );
+$logger->writeHeading_H1( "TEST SUITE: ". basename( __FILE__ ) );
+
 
 Utils\UnitTest::$logger = $logger;
 foreach(glob($path. "/*.php") as $file) 
 {
     if ( basename($file) !=basename( __FILE__ ) ) 
     {
-        $logger->write( "=======================================" );
-        $logger->write( "TESTING: ". basename($file) );
-        $logger->write( "=======================================" );
+        $logger->writeHeading_H2( "TESTING: ". basename($file) );
 
         Utils\UnitTest::$noRun = true;
         
