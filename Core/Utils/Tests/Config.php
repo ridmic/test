@@ -48,13 +48,13 @@ class Config_Test extends Utils\UnitTest
     */
 	public function test_get_namespace()        
 	{ 
-	    $this->assert_equal( $this->config->get('db.name1', 'xx'), 'xxhhh' );
+	    $this->assert_equal( $this->config->get('db.name1', 'xx'), 'xx' );
 	    $this->assert_equal( $this->config->get('db.name', 'xx'), 'mydatabase' );
 
-	    $this->assert_equal( $this->config->get('db.user1', 'xx'), 'xxuu' );
+	    $this->assert_equal( $this->config->get('db.user1', 'xx'), 'xx' );
 	    $this->assert_equal( $this->config->get('db.user', 'xx'), 'myuser' );
 
-	    $this->assert_equal( $this->config->get('db.password1', 'xx'), 'xxvv' );
+	    $this->assert_equal( $this->config->get('db.password1', 'xx'), 'xx' );
 	    $this->assert_equal( $this->config->get('db.password', 'xx'), 'mypass' );
 	}
     

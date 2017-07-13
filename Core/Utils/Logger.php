@@ -26,9 +26,10 @@ abstract class aLogger
     protected $pageWidth    = 80;
     protected $startUp      = true;
 
-    public function __construct( $startUp = false )  
+    public function __construct( $startUp = false, $timestamp = false )  
     {
         $this->startUp = $startUp === true ? true : false;
+        $this->timestamp($timestamp);
         if ( $this->startUp )
         {
             $date = new \DateTime();
@@ -178,7 +179,7 @@ class FileLogger extends aLogger
         if ( $wrapFile == self::WRAP_NEVER )
             @unlink( $this->logfile );
             
-        parent::__construct();
+        parent::__construct( true, true );
     }
 
     public function setLogFile( $logFile )  { $this->logfile = $logFile; }

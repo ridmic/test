@@ -7,7 +7,7 @@ use DryMile\Core        as Core;
 use DryMile\Core\Utils  as Utils;
 
 Core\Debug::level( Core\Debug::DBG_TRACE );
-Core\Debug::setLogger( new Utils\HtmlLogger() );
+Core\Debug::setLogger( new Utils\HtmlLogger(true) );
 
 // ========================================================
 // We can create simple closure based app
