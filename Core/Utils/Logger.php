@@ -11,10 +11,8 @@ abstract class aLogger
 
     const DIV_H1            = '#';
     const DIV_H2            = '=';
-    const DIV_H2R           = '|';
-    const DIV_H3            = '*';
-    const DIV_H4            = '-';
-    const DIV_H4R           = '|';
+    const DIV_H3            = '-';
+    const DIV_HX            = ' ';
 
     const BOX_CORNER        = '+';
     const BOX_HEADER        = '-';
@@ -24,35 +22,43 @@ abstract class aLogger
     const BOX_ROW_CENTER    = STR_PAD_BOTH;
     const BOX_ROW_RIGHT     = STR_PAD_LEFT;
 
-    protected $timestamp    = true;
+    protected $timestamp    = false;
     protected $pageWidth    = 80;
+    protected $startUp      = true;
 
-    public function __construct()  
+    public function __construct( $startUp = false )  
     {
-        $this->timestamp = true;
-        $this->writeHeader_H1("STARTING");
-
+        $this->startUp = $startUp === true ? true : false;
+        if ( $this->startUp )
+        {
+            $date = new \DateTime();
+            $time = "[".$date->format('d/m/Y H:i:s')."]";
+            $this->writeHeader_H1("LOG START $time");
+        }
     }
     public function __destruct()
     {
-        $this->timestamp = true;
-        $this->writeHeader_H1("ENDING");
+        if ( $this->startUp )
+        {
+            $date = new \DateTime();
+            $time = "[".$date->format('d/m/Y H:i:s')."]";
+            $this->writeHeader_H1("LOG END $time");
+        }
     }
     
-    public function timestamp( $b )     { $this->timestamp = $b === true ? true : false; }
-    public function pageWidth()         { return $this->pageWidth; }
-    public function setPageWidth( $w )  { $this->pageWidth = max( 10, intval($w)); }
+    public function timestamp( $b )             { $this->timestamp = $b === true ? true : false; }
+    public function pageWidth()                 { return $this->pageWidth; }
+    public function setPageWidth( $w )          { $this->pageWidth = max( 10, intval($w)); }
     
-    public function writeHeader_H1( $str ) { $this->writeDivider( " $str ", self::DIV_H1); }
-    public function writeHeader_H2( $str ) { $this->writeDivider( " $str ", self::DIV_H2); }
-    public function writeHeader_H3( $str ) { $this->writeDivider( " $str ", self::DIV_H3); }
-    public function writeHeader_H4( $str ) { $this->writeDivider( " $str ", self::DIV_H4); }
+    public function writeHeader_H1( $str )      { $this->writeDivider( " $str ", self::DIV_H1); }
+    public function writeHeader_H2( $str )      { $this->writeDivider( " $str ", self::DIV_H2); }
+    public function writeHeader_H3( $str )      { $this->writeDivider( " $str ", self::DIV_H3); }
+    public function writeHeader_HX( $str )      { $this->writeDivider( " $str ", self::DIV_HX); }
 
-    public function writeDivider_H1() { $this->writeDivider( '', self::DIV_H1); }
-    public function writeDivider_H2() { $this->writeDivider( '', self::DIV_H2); }
-    public function writeDivider_H3() { $this->writeDivider( '', self::DIV_H3); }
-    public function writeDivider_H4() { $this->writeDivider( '', self::DIV_H4); }
-    public function writeDivider( $Str = '', $pad )
+    public function writeDivider_H1()           { $this->writeDivider( '', self::DIV_H1); }
+    public function writeDivider_H2()           { $this->writeDivider( '', self::DIV_H2); }
+    public function writeDivider_H3()           { $this->writeDivider( '', self::DIV_H3); }
+    public function writeDivider( $str = '', $pad )
     {
         $this->write( str_pad( $str, $this->pageWidth, $pad, STR_PAD_BOTH ), 0 );
     }
@@ -60,16 +66,15 @@ abstract class aLogger
     public function writeDividerRow_H1( $str )  { $this->writeDividerRow( $str, self::DIV_H1); }
     public function writeDividerRow_H2( $str )  { $this->writeDividerRow( $str, self::DIV_H2); }
     public function writeDividerRow_H3( $str )  { $this->writeDividerRow( $str, self::DIV_H3); }
-    public function writeDividerRow_H4( $str )  { $this->writeDividerRow( $str, self::DIV_H4); }
+    public function writeDividerRow_HX( $str )  { $this->writeDividerRow( $str, self::DIV_HX); }
     public function writeDividerRow( $str, $pad, $align= self::BOX_ROW_CENTER )
     {
         $this->write( $pad.' ' . str_pad( "$str", $this->pageWidth - 2 -(2*strlen($pad)), ' ', $align ) . ' '. $pad, 0 );
     }
 
-    public function writeHeading_H1( $str ) { $this->writeHeading( $str, self::DIV_H1); }
-    public function writeHeading_H2( $str ) { $this->writeHeading( $str, self::DIV_H2); }
-    public function writeHeading_H3( $str ) { $this->writeHeading( $str, self::DIV_H3); }
-    public function writeHeading_H4( $str ) { $this->writeHeading( $str, self::DIV_H4); }
+    public function writeHeading_H1( $str )     { $this->writeHeading( $str, self::DIV_H1); }
+    public function writeHeading_H2( $str )     { $this->writeHeading( $str, self::DIV_H2); }
+    public function writeHeading_H3( $str )     { $this->writeHeading( $str, self::DIV_H3); }
     public function writeHeading( $str, $pad )
     {
         $this->writeDivider( '', $pad );

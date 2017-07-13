@@ -17,6 +17,7 @@ class UnitTest
 	
 	public $start_time 		= 0;
 	public $end_time 		= 0;
+	public $test_count	    = 0;
 	public $assertion_count	= 0;
 	
 	public static $noRun    = false;
@@ -295,14 +296,19 @@ class UnitTest
 
 		$failures   = array();
 		$errors     = array();
-		$successes  = array();
-		$good = TRUE;
-		$i = 1;
+
+		$sCount     = 0;
+		$fCount     = 0;
+		$eCount     = 0;
+		$good       = TRUE;
+		$i          = 1;
 		
 		// Print out the running status of each method.
 		$line = '';
 		foreach ($this->results as $unit_test => $results) 
 		{
+			$this->test_count++;
+			
 			foreach ($results as $result => $values) 
 			{
 				foreach ($values as $value) 
@@ -311,11 +317,22 @@ class UnitTest
 					
 					switch ($result) 
 					{
-						case 'failures' : $line = $line.'F '; $failures[$unit_test][] = $value; break;
-						case 'errors'   : $line = $line.'E '; $errors[$unit_test][] = $value; break;
+						case 'failures': 
+						    $line = $line.'F '; 
+						    $failures[$unit_test][] = $value; 
+						    $fCount++;
+						    break;
+						case 'errors': 
+						    $line = $line.'E '; 
+						    $errors[$unit_test][] = $value; 
+						    $eCount++;
+						    break;
 					
 						default:
-						case 'successes': $line = $line.'T '; $successes[$unit_test][] = $value;break;
+						case 'successes': 
+						    $line = $line.'T '; 
+						    $sCount++;
+						    break;
 					}
 					
 					$i++;
@@ -330,7 +347,7 @@ class UnitTest
 			}
 		}
 		self::$logger->write($line);
-	    self::$logger->writeDivider_H4();
+	    self::$logger->writeDivider_H3();
 
 		// Do we have any failures?
 		if ( $failures ) 
@@ -344,7 +361,7 @@ class UnitTest
 					self::$logger->writeBoxRow("  - " . $message, aLogger::BOX_ROW_LEFT );
 			    self::$logger->writeBoxFooter();
 			}
-    	    self::$logger->writeDivider_H4();
+    	    self::$logger->writeDivider_H3();
 		}
 		
 		// Do we have any failures?
@@ -359,11 +376,11 @@ class UnitTest
 					self::$logger->writeBoxRow("  - " . $message, aLogger::BOX_ROW_LEFT );
 			    self::$logger->writeBoxFooter();
 			}
-    	    self::$logger->writeDivider_H4();
+    	    self::$logger->writeDivider_H3();
 		}
 		
 		// Finally, test stats
-	    self::$logger->write("RESULTS: Ran ".$this->assertion_count." assertion(s) in ". number_format(($this->end_time - $this->start_time), 6)." seconds");
+	    self::$logger->write("RESULTS: Ran ".$this->test_count." test, ".$this->assertion_count." assertion(s) in ". number_format(($this->end_time - $this->start_time), 6)." seconds");
 
 		// Good or bad?
 		if ( $good ) 
@@ -373,10 +390,12 @@ class UnitTest
 		}
 		else 
 		{
-    	    self::$logger->write("PASSED : ".count($successes) );
-    	    self::$logger->write("FAILED : ".count($failures) );
-    	    self::$logger->write("ERRORS : ".count($errors) );
+    	    self::$logger->write("PASSED : ".$sCount );
+    	    self::$logger->write("FAILED : ".$fCount );
+    	    self::$logger->write("ERRORS : ".$eCount );
 		}
+	    self::$logger->writeDivider_H3();
+	    self::$logger->writeLn();
 	}
 	
 	/* --------------------------------------------------------------
