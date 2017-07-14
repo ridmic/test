@@ -44,7 +44,7 @@ Core\Debug::setLogger( new Utils\HtmlLogger(true) );
 
 //$myApp = Core\AppFactory::buildMvc( 'roll_it', true, Core\Responder::TYPE_HTML );
 
-$myApp = Core\AppFactory::buildMvc( 'mike', false, Core\Responder::TYPE_HTML );
+//$myApp = Core\AppFactory::buildMvc( 'mike', false, Core\Responder::TYPE_HTML );
 
 //$myApp->responder()->respond( $myApp->run() );
 
@@ -55,3 +55,25 @@ $myApp = Core\AppFactory::buildMvc( 'mike', false, Core\Responder::TYPE_HTML );
 // Unit Testing:
 // add tests for utils
 
+
+include CORE_DIR . "Utils/Header.php";
+
+$header = new Utils\Header();
+
+foreach(
+  array(
+    'text/*;q=0.3, text/html;q=0.7, text/html;level=1, text/html;level=2;q=0.4, */*;q=0.5',
+    'text/*;q=0.3, text/html;q=0.8, application/xhtml+xml;q=0.7, */*;q=0.2',
+    'text/*;q=0.3, text/html;q=0.7, */*;q=0.8',
+    'text/*, application/xhtml+xml',
+    'text/html, application/xhtml+xml'
+  ) as $testheader) 
+  {  
+    $_SERVER['HTTP_ACCEPT'] = $testheader;
+    $accepting = Array ('application/xhtml+xml', 'text/html');
+
+    echo "TEST : $testheader<br>\n";
+    echo "ACCEPT : ".implode(' or ' , $accepting)."<br>\n";
+    var_dump( $header->getBestSupportedMimeType() );
+    echo "FOUND: ". $header->getBestSupportedMimeType($accepting)."<br>\n";
+  }
