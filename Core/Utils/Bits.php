@@ -48,7 +48,7 @@ class Bits
     public function set( $bits )
     {
         $this->bits = self::BIT_NONE;
-        $this->bits = $flags;
+        $this->bits = $bits;
         return $this->bits;
     }
     
@@ -107,6 +107,102 @@ class Bits
             $str[] = $mask & $this->bits ? '1' : '0';
             $mask  = $mask >> 1;
         }while( $mask > 0 );
-        return (string)"FLAGS [".implode( '', $str)."]<br>\n";
+        return implode( '', $str);
     }      
 }
+
+class BitSlots extends Bits
+{
+    const OFFSET_MAX        = 32;
+    const MASK_DIVIDER      = '|';
+    
+    protected $slotCount    = 0;
+    protected $slots        = array();
+    protected $slotOffsets  = array();
+    protected $slotLengths  = array();
+    protected $slotMasks    = array();
+ 
+    public function __construct(  $bits = self::BIT_NONE )
+    {
+        parent::__construct( $bits );
+    }
+    
+    public function getSlotCount()  { return $this->slotCount; }
+    public function showMask()      { return strrev(implode( self::MASK_DIVIDER, $this->slots )); }
+    
+    public function setMask( $mask = '' )
+    {
+        $this->bits      = 0;
+        $this->slots     = explode( self::MASK_DIVIDER, strrev($mask) );
+        $this->slotCount = count( $this->slots );
+        $offset          = 0;
+        $maskBits        = 0;
+        foreach( $this->slots as $slot )
+        {
+            $this->slotOffsets[] = $offset;
+            $this->slotLengths[] = strlen( $slot );
+            $this->slotMasks[]   = pow(2, strlen( $slot ))-1;
+            $offset += strlen( $slot );
+        }
+        // Validate
+        if ( $offset > self::OFFSET_MAX )
+            $this->resetMask();
+        return $offset <= self::OFFSET_MAX;
+    }
+    
+    public function resetMask()
+    {
+        $this->slotCount    = 0;
+        $this->slotOffsets  = array();
+        $this->slotLengths  = array();
+        $this->slotMasks    = array();
+        $this->slotValue    = 0;
+    }
+    
+    public function setSlot( $slot, $value, $clean = true )
+    {
+        // Initialise
+        $setSlot = false;
+        $slot    = intval($slot);
+        $value   = intval($value);
+        
+        // Validate
+        if ( $slot >= 0 && $slot < $this->slotCount )
+        {
+            if ( $value >= 0 && $value <= $this->slotMasks[$slot] )
+            {
+                // Set the appropriate bits
+                if ( $clean )
+                    $this->clear( $this->slotMasks[$slot] << $this->slotOffsets[$slot] );
+                $this->add( $value << $this->slotOffsets[$slot] );
+                $setSlot = true;
+            }
+        }
+        return $setSlot;
+    }
+
+    public function getSlot( $slot )
+    {
+        // Initialise
+        $slot  = intval($slot);
+        $value = 0;
+        
+        // Validate
+        if ( $slot >= 0 && $slot < $this->slotCount)
+        {
+            // Get the appropriate bits
+            $value = ($this->get() >> $this->slotOffsets[$slot]) & $this->slotMasks[$slot];
+        }
+        return $value;
+    }
+    
+    public function showSlots()
+    {
+        $strValue = strrev("".$this);
+        $arrSlots = [];
+        for ( $i = 0 ; $i < $this->slotCount ; $i++ )
+            $arrSlots[] = substr( $strValue, $this->slotOffsets[$i], $this->slotLengths[$i]);
+        return strrev(implode( self::MASK_DIVIDER, $arrSlots ));
+    }
+}
+
