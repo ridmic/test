@@ -59,11 +59,43 @@ Core\Debug::setLogger( new Utils\HtmlLogger(true) );
 
 include CORE_DIR . "Utils/Bits.php";
 
+class Game
+{
+    
+}
 
 class Turn
 {
-    const TURN_MASK         = '1|11111|11|111111|111|111|111|111|111|111';   
+    const TURN_MASK         = '11|1111|11|111111|111|111|111|111|111|111';   
     
+    const COMBINATION_1S    = 1;
+    const COMBINATION_2S    = 2;
+    const COMBINATION_3S    = 3;
+    const COMBINATION_4S    = 4;
+    const COMBINATION_5S    = 5;
+    const COMBINATION_6S    = 6;
+    const COMBINATION_3X    = 7;
+    const COMBINATION_4X    = 8;
+    const COMBINATION_FH    = 9;
+    const COMBINATION_SS    = 10;
+    const COMBINATION_LS    = 11;
+    const COMBINATION_CH    = 12;
+    const COMBINATION_YZ    = 13;
+    
+    const SCORE_1S          = 0;
+    const SCORE_2S          = 0;
+    const SCORE_3S          = 0;
+    const SCORE_4S          = 0;
+    const SCORE_5S          = 0;
+    const SCORE_6S          = 0;
+    const SCORE_3X          = 15;
+    const SCORE_4X          = 20;
+    const SCORE_FH          = 25;
+    const SCORE_SS          = 30;
+    const SCORE_LS          = 40;
+    const SCORE_CH          = 0;
+    const SCORE_YZ          = 50;
+
     const DICE_1            = 0;
     const DICE_2            = 1;
     const DICE_3            = 2;
@@ -179,7 +211,6 @@ class Turn
         return $this->slots->getSlot( self::TURN );
     }
 
-
     protected function score()
     {
         $score = 0;
@@ -195,8 +226,8 @@ class Turn
     }      
 }
 
-$turn = new Turn();
-$hold = array();
+$turn  = new Turn();
+$hold  = array();
 $holdT = array();
 for ( $i = 0 ; $i < Turn::TURN_MAX ; $i++ )
 {
