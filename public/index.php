@@ -61,21 +61,202 @@ include CORE_DIR . "Utils/Bits.php";
 
 class Game
 {
-     // Bonus + Total
+    const TURN_MAX          = 13;
     const SCORE_BONUS       = 35;
     const YAHTZEE_BONUS     = 100;
+    const SCORE_BONUS_MIN   = 63;
     
-    const SCORE_BONUS_OVER  = 62;
+    protected $turns        = [];
+    protected $rolls        = 0;
+    protected $currentTurn  = null;
+    protected $bonus        = 0;
      
-     function xx()
-     {
-             // Special rules for subsequent Yahtzee's so we need to wrk it out up front
-        $yahtzee = false;
-        foreach ( $arrCounts as $i => $val) 
-            if ( $val == 5 )
-                $yahtzee = true;
+    public function __construct()
+    {
+        $this->currentTurn = new Turn();
+        $this->startGame();
+    }
+     
+    public function startGame()
+    {
+        $this->turns = [];
+        $this->rolls = 0;
+        $this->bonus = 0;
+        return true;
+    }
+    
+    public function startTurn()
+    {
+        return $this->currentTurn->startTurn();
+    }
+     
+    public function takeTurn( $hold = [] )
+    {
+        if ( is_object($this->currentTurn) )
+        {
+            $this->rolls++;
+            return $this->currentTurn->takeTurn( $hold );
+        }
+    }
+    
+    public function endTurn( $type )
+    {
+        if ( $this->currentTurn->endTurn( $type ) >= 0 )
+        {
+            // Save this turn away against its type
+            if ( ! isset($this->turns[$type]) )
+            {
+                $this->turns[$type] = $this->currentTurn->turn(); 
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public function endGame()
+    {
+        var_dump($this->turns);
+    }
+    
+    public function scoreGame()
+    {
+        // Top Score
+        $scoreTop = 0;
+        for ( $i = Turn::TURN_TYPE_1S ; $i <= Turn::TURN_TYPE_6S ; $i++ )
+        {
+            $this->currentTurn->loadTurn( $this->turns[$i] );
+            $scoreTop += $this->currentTurn->getScore();
+        }
+        // Bonus?
+        $this->bonus = 0;
+        if ( $scoreTop >= self::SCORE_BONUS_MIN )
+            $this->bonus = self::SCORE_BONUS;
 
-     }
+        // Top Score
+        $scoreLower = 0;
+        for ( $i = Turn::TURN_TYPE_3X ; $i <= Turn::TURN_TYPE_YZ ; $i++ )
+        {
+            $this->currentTurn->loadTurn( $this->turns[$i] );
+            $scoreLower += $this->currentTurn->getScore();
+        }
+        
+        return [ 'top' => $scoreTop, 
+                 'bonus' => $this->bonus, 
+                 'lower' => $scoreLower, 
+                 'total' => $scoreTop + $this->bonus + $scoreLower ];
+    }
+
+    public function bestTurnBasedScore()
+    {
+        // Find the top score
+        $scores = [];
+        for ( $type = Turn::TURN_TYPE_1S ; $type <= Turn::TURN_TYPE_YZ ; $type++ )
+            $scores[ $this->currentTurn->turnTypeAsString($type) ] = $this->currentTurn->getTurnBasedScore($type);
+        asort( $scores, SORT_NUMERIC );
+        $scores = array_reverse( $scores );
+        // Scan for the best
+        foreach ( $scores as $strType => $score )
+        {
+            // Do we have this already (ignore chance)?
+            $type = $this->currentTurn->turnTypeFromString($strType);
+            if ( ! isset($this->turns[$type]) && $strType != 'CH' )
+            {
+                return $type;   
+            }
+        }
+        return 0;
+    }
+
+    public function autoHold( $type, $hold = [ false, false, false, false, false ] )
+    {
+        // Initialise
+        $score  = -1;
+        $die    = $this->currentTurn->getDie();
+
+        // Convert the INTs into strings
+        foreach ( $die as $dice => $value  )
+            $dieArray[] = "$value";
+        $diceString = implode( '', $dieArray );    
+        $arrCounts  = count_chars( $diceString, 1 );
+
+        // Validate
+        if ( $type >= Turn::TURN_TYPE_1S && $type <= Turn::TURN_TYPE_YZ )
+        {
+            switch ( $type )
+            {
+                case Turn::TURN_TYPE_1S:
+                case Turn::TURN_TYPE_2S:
+                case Turn::TURN_TYPE_3S:
+                case Turn::TURN_TYPE_4S:
+                case Turn::TURN_TYPE_5S:
+                case Turn::TURN_TYPE_6S:
+                    for ( $i = Turn::DICE_1 ; $i <= Turn::DICE_5 ; $i++ )
+                        $hold[ $i ] = $die[ $i ] == $type ? true : false;
+                    break;
+                    
+                case Turn::TURN_TYPE_3X:
+                    // 3 of any number
+                    // Find the items >= 3 off
+                    foreach ( $arrCounts as $i => $val) 
+                    {
+                        if ( $val >= 3 )
+                        {
+                            for ( $j = Turn::DICE_1 ; $j <= Turn::DICE_5 ; $j++ )
+                                $hold[ $j ] = $die[ $j ] == ($i-48) ? true : false;
+                        }
+                    }
+                    break;
+                    
+                case Turn::TURN_TYPE_4X:
+                    // 4 of any number
+                    // Find the items >= 3 off
+                    foreach ( $arrCounts as $i => $val) 
+                    {
+                        if ( $val >= 4 )
+                        {
+                            for ( $j = Turn::DICE_1 ; $j <= Turn::DICE_5 ; $j++ )
+                                $hold[ $j ] = $die[ $j ] == ($i-48) ? true : false;
+                        }
+                    }
+                    break;
+                    
+                case Turn::TURN_TYPE_FH:
+                    // 2 of one and 3 of another
+                    break;
+                    
+                case Turn::TURN_TYPE_SS:
+                    // 4 in a row
+                    break;
+                    
+                case Turn::TURN_TYPE_LS:
+                    // 5 in a row
+                    break;
+                    
+                case Turn::TURN_TYPE_CH:
+                    // any score
+                    break;
+                    
+                case Turn::TURN_TYPE_YZ:
+                    // % of any number
+                    break;
+                    
+                default:
+                    break;
+            }
+        }
+        return $hold;
+    }
+
+    public function getTurnAsString()
+    {
+        return "TURN : T[".strtoupper(substr("00000000".dechex($this->currentTurn->turn()),-8))."] => {".$this->currentTurn->getTurn()."}{".$this->currentTurn->getTurnType()."} [".implode( ', ', $this->currentTurn->getDie())."] = ".$this->currentTurn->getScore();
+    }
+    
+    public function getScoreAsString()
+    {
+        return "SCORE : T[".strtoupper(substr("00000000".dechex($this->currentTurn->turn()),-8))."] => {".$this->currentTurn->turnTypeAsString($this->currentTurn->getTurnType())."} = [".$this->currentTurn->getScore()."]";
+    }
+     
 }
 
 class Turn
@@ -121,11 +302,12 @@ class Turn
     const TURN              = 6;
     const TURN_TYPE         = 7;
 
-    const TURN_MAX          = 3;
+    const THROW_MAX         = 3;
     const DICE_VALUE_MIN    = 1;
     const DICE_VALUE_MAX    = 6;
     
-    protected $slots        = null;
+     protected $strTypes    = ['1S','2S','3S','4S','5S','6S','3X','4X','FH','SS','LS','CH','YZ'];
+     protected $slots       = null;
     
     public function __construct()
     {
@@ -133,9 +315,12 @@ class Turn
         $this->slots->setMask( self::TURN_MASK );
     }
     
+    public function turn()                  { return $this->slots->get(); }
+    public function loadTurn( $turnID )     { $this->slots->set( $turnID ); }
+
     public function startTurn()
     {
-        $this->slots->clear();    
+        return ( $this->slots->clear() == 0 ? true : false );
     }
     
     public function takeTurn( $hold = [] )
@@ -172,7 +357,7 @@ class Turn
                 $this->setScore( $score );
             }
         }
-        $score;
+        return $score;
     }
 
     public function setTurnType( $type )
@@ -200,21 +385,6 @@ class Turn
         return $this->slots->getSlot( self::TURN_TYPE );
     }
     
-    public function bestTurnBasedScore()
-    {
-        // TODO: Not working 
-        
-        $scores = [];
-        for ( $type = self::TURN_TYPE_1S ; $type <= self::TURN_TYPE_YZ ; $type++ )
-            $scores[ $type ] = $this->getTurnBasedScore($type);
-        var_dump($scores);
-        sort( $scores, SORT_NUMERIC );
-        $scores = array_reverse( $scores );
-        var_dump($scores);
-        
-        return array_keys($scores)[0];
-    }
-
     public function getTurnBasedScore( $type )
     {
         // Initialise
@@ -314,8 +484,11 @@ class Turn
                 case self::TURN_TYPE_SS:
                     // 4 in a row
                     $score = 0;
-                    $diceString = implode( '', array_unique( str_split( $diceString ) ));
-                    if ( strlen($diceString) >= 4 && strpos($diceString, '4') !== false )
+                    $diceString = array_unique( str_split( $diceString ) );
+                    sort($diceString);
+                    $diceString = implode( '', $diceString );
+                    $matches    = ['1234','12345','12346','2345','23456' ];
+                    if ( in_array($diceString, $matches ))
                         $score = self::SCORE_SS;
                     break;
                     
@@ -350,16 +523,28 @@ class Turn
         }
         return $score;
     }
-   
+
     public function turnTypeAsString( $type )
     {
         $strType  = '';
-        $strArray = ['1S','2S','3S','4S','5S','6S','3X','4X','FH','SS','LS','CH','YZ'];
-        
+
         // Validate
         if ( $type >= self::TURN_TYPE_1S && $type <= self::TURN_TYPE_YZ )
-            $strType = $strArray[ $type-1 ];
+            $strType = $this->strTypes[ $type-1 ];
         return $strType;
+    }
+    
+    public function turnTypeFromString( $strType )
+    {
+        $type = -1;
+        for ( $i=0 ; $i < count($this->strTypes) ; $i++ )
+        {
+            if ( $this->strTypes[$i] == strtoupper($strType) )
+            {
+                $type = $i+1;
+            }
+        }
+        return $type; 
     }
     
     public function rollDice( $index )
@@ -426,7 +611,7 @@ class Turn
     {
         // Initialise
         $value = $value == -1 ? $this->getTurn()+1 : intval($value);
-        if ( $value <= self::TURN_MAX )
+        if ( $value <= self::THROW_MAX )
             return $this->slots->setSlot( self::TURN, $value );
         return false;
     }
@@ -437,7 +622,7 @@ class Turn
         return $this->slots->getSlot( self::TURN );
     }
 
-    protected function score()
+    public function score()
     {
         $score = 0;
         for ( $i = self::DICE_1 ; $i <= self::DICE_5 ; $i++ )
@@ -452,6 +637,46 @@ class Turn
     }      
 }
 
+$game  = new Game();
+$hold  = array();
+if ( $game->startGame() )
+{
+    Core\Debug::write( "STARTING GAME...");
+
+    for ( $j = 1 ; $j <= Game::TURN_MAX ; $j++ )
+    {
+        if ( $game->startTurn() )
+        {
+            $hold = array();
+            for ( $i = 0 ; $i < Turn::THROW_MAX ; $i++ )
+            {
+                $game->takeTurn($hold);
+                
+                // We would hold some dice here
+                $turn = $game->bestTurnBasedScore();
+                $hold = $game->autoHold( $turn , $hold );
+Core\Debug::write( "TURN {$j} -> " . $game->getScoreAsString() . " FOR " . $game->getTurnAsString() );
+                var_dump($turn);
+                var_dump($hold);
+            }
+            // End the turn
+            if ( $game->endTurn( $j ) )
+            {
+                Core\Debug::write( "TURN {$j} -> " . $game->getScoreAsString() . " FOR " . $game->getTurnAsString() );
+            }
+            else
+            {
+                Core\Debug::write( "FAILED TO SAVE TURN!" );
+            }
+        }
+    }
+    $game->endGame();
+    var_dump( $game->scoreGame() );
+}
+
+
+
+/*
 $turn  = new Turn();
 $hold  = array();
 $holdT = array();
@@ -467,21 +692,13 @@ $plays = [  Turn::TURN_TYPE_1S => 1,
 foreach ( $plays as $play => $val )
 {
     $turn->startTurn();
-    for ( $i = 0 ; $i < Turn::TURN_MAX ; $i++ )
+    for ( $i = 0 ; $i < Turn::THROW_MAX ; $i++ )
     {
         $turn->takeTurn($hold);
         Core\Debug::write( "TURN : {".$turn->getTurn()."}{".$turn->getTurnType()."} [".implode( ', ', $turn->getDie())."] = ".$turn->getScore());
         
-        $type = $turn->bestTurnBasedScore();        
-        
-        // Try and get 3's
-        foreach ( $turn->getDie() as $dice => $value )
-        {
-            $hold[$dice] = $value == $val ? true : false;
-            $holdT[$dice] = $value == $val ? 'T' : 'F';
-        }
-        Core\Debug::write( "HOLD : {".$turn->getTurn()."}{".$turn->getTurnType()."} [".implode( ', ', $holdT)."]");
     }
     $turn->endTurn( $play );
     Core\Debug::write( "SCORE : {".$turn->turnTypeAsString($turn->getTurnType())."} = [".$turn->getScore()."]");
 }
+*/
