@@ -70,6 +70,7 @@ class Game
     protected $rolls        = 0;
     protected $currentTurn  = null;
     protected $bonus        = 0;
+    protected $bonusYahtzee = 0;
      
     public function __construct()
     {
@@ -104,6 +105,10 @@ class Game
     {
         if ( $this->currentTurn->endTurn( $type ) >= 0 )
         {
+            // Check for multiple yahtzee's
+            if ( $this->currentTurn->isYahtzee() && array_key_exists(Turn::TURN_TYPE_YZ, $this->turns ) )
+                $this->bonusYahtzee += self::YAHTZEE_BONUS;
+                
             // Save this turn away against its type
             if ( ! isset($this->turns[$type]) )
             {
@@ -141,10 +146,11 @@ class Game
             $scoreLower += $this->currentTurn->getScore();
         }
         
-        return [ 'top' => $scoreTop, 
-                 'bonus' => $this->bonus, 
-                 'lower' => $scoreLower, 
-                 'total' => $scoreTop + $this->bonus + $scoreLower ];
+        return [ 'top'    => $scoreTop, 
+                 'bonus'  => $this->bonus, 
+                 'lower'  => $scoreLower, 
+                 'ybonus' => $this->bonusYahtzee, 
+                 'total'  => $scoreTop + $this->bonus + $scoreLower + $this->bonusYahtzee];
     }
 
     public function bestTurnBasedScore()
@@ -155,8 +161,6 @@ class Game
             $scores[ $this->currentTurn->turnTypeAsString($type) ] = $this->currentTurn->getTurnBasedScore($type, true );
         asort( $scores, SORT_NUMERIC );
         $scores = array_reverse( $scores );
-//var_dump($scores);      
-
 
         // Scan for the best
         foreach ( $scores as $strType => $score )
@@ -168,26 +172,31 @@ class Game
                 return $type;   
             }
         }
-        return 0;
+        return Turn::TURN_TYPE_CH;
     }
 
-    public function autoHold( $type, $hold = [ false, false, false, false, false ] )
+    public function autoHold( $type )
     {
         // Initialise
         $score  = -1;
         $die    = $this->currentTurn->getDie();
+        $hold   = [ false, false, false, false, false ];
 
         // Convert the INTs into strings
         foreach ( $die as $dice => $value  )
             $dieArray[] = "$value";
+        sort( $dieArray );
         $diceString = implode( '', $dieArray );    
         $arrCounts  = count_chars( $diceString, 1 );
+        // Sort the counts in descending order
+        arsort( $arrCounts );
 
         // Validate
         if ( $type >= Turn::TURN_TYPE_1S && $type <= Turn::TURN_TYPE_YZ )
         {
             switch ( $type )
             {
+                // For these we hold the required number regardless of count
                 case Turn::TURN_TYPE_1S:
                 case Turn::TURN_TYPE_2S:
                 case Turn::TURN_TYPE_3S:
@@ -198,63 +207,60 @@ class Game
                         $hold[ $i ] = $die[ $i ] == $type ? true : false;
                     break;
                     
+                // For these we just hold the largest value
                 case Turn::TURN_TYPE_3X:
-                    // 3 of any number
-                    // Find the items >= 3 off
-                    foreach ( $arrCounts as $i => $val) 
-                    {
-                        if ( $val >= 3 )
-                        {
-                            for ( $j = Turn::DICE_1 ; $j <= Turn::DICE_5 ; $j++ )
-                                $hold[ $j ] = $die[ $j ] == ($i-48) ? true : false;
-                        }
-                    }
-                    break;
-                    
                 case Turn::TURN_TYPE_4X:
-                    // 4 of any number
-                    // Find the items >= 3 off
-                    foreach ( $arrCounts as $i => $val) 
-                    {
-                        if ( $val >= 4 )
-                        {
-                            for ( $j = Turn::DICE_1 ; $j <= Turn::DICE_5 ; $j++ )
-                                $hold[ $j ] = $die[ $j ] == ($i-48) ? true : false;
-                        }
-                    }
+                case Turn::TURN_TYPE_YZ:
+                    $keys   = array_keys( $arrCounts );
+                    $toHold = $keys[0] - 48;
+                    for ( $i = Turn::DICE_1 ; $i <= Turn::DICE_5 ; $i++ )
+                        $hold[ $i ] = $die[ $i ] == $toHold ? true : false;
                     break;
                     
+                // For these we just hold the largest 2 values
                 case Turn::TURN_TYPE_FH:
-                    // 2 of one and 3 of another
-                    $count = 0;
-                    foreach ( $arrCounts as $i => $val) 
+                    $keys   = array_keys( $arrCounts );
+                    $toHold1 = $keys[0] - 48;
+                    $toHold2 = $keys[1] - 48;
+                    for ( $i = Turn::DICE_1 ; $i <= Turn::DICE_5 ; $i++ )
+                        $hold[ $i ] = $die[ $i ] == $toHold1 || $die[ $i ] == $toHold2 ? true : false;//var_dump($hold);
+                    break;
+                    
+                // For this we want to hold numbers in sequence, but ony of of each number
+                case Turn::TURN_TYPE_SS:
+                case Turn::TURN_TYPE_LS:
+                    // Look for sequencial numbers
+                    $toHold = array();
+                    $chars = str_split( $diceString, 1 );
+                    for ($i = 0 ; $i < count($chars)-1 ; $i++ )
                     {
-                        if ( $val >= 4 )
+                        if ( $chars[$i+1] - $chars[$i] == 1 )
                         {
-                            // Just hold 3 of them
-                            $set = 0;
-                            for ( $j = Turn::DICE_1 ; $j <= Turn::DICE_5 ; $j++ )
+                            $toHold[] = $chars[$i];
+                            $toHold[] = $chars[$i+1];
+                        }
+                    }
+                    if ( count($toHold) )
+                    {
+                        // Unique values only
+                        $toHold = array_unique( $toHold );
+                        $held   = array();
+                        for ( $i = Turn::DICE_1 ; $i <= Turn::DICE_5 ; $i++ )
+                        {
+                            if ( in_array($die[ $i ], $toHold ) && !in_array( $die[$i], $held ))
                             {
-                                $hold[ $j ] = $die[ $j ] == ($i-48) ? $set++ < 2 : false;
+                                $hold[ $i ] = true;
+                                $held[]     = $die[ $i ];
                             }
                         }
-                        if ( ($val == 3 || $val == 2) && $count < 2 )
-                        {
-                            $hold[ $j ] = $die[ $j ] == ($i-48) ? true : false;
-                            $count++;   // Don't want to hold 3 pairs
-                        }
                     }
                     break;
-                    
-                case Turn::TURN_TYPE_SS:
-                    break;
-                    
-                case Turn::TURN_TYPE_LS:
+
+                // For this, just select anything > 4
                 case Turn::TURN_TYPE_CH:
-                case Turn::TURN_TYPE_YZ:
-                    // 6 of any number
-                    $hold = [ true, true, true, true, true ];
-                    break;
+                     for ( $i = Turn::DICE_1 ; $i <= Turn::DICE_5 ; $i++ )
+                        $hold[ $i ] = $die[ $i ] > 4 ? true : false;
+                   break;
                     
                 default:
                     break;
@@ -277,7 +283,7 @@ class Game
 
 class Turn
 {
-    const TURN_MASK         = '111111|1111|11|11111|111|111|111|111|111';   
+    const TURN_MASK         = '11111|1111|11|111111|111|111|111|111|111';   
     
     const TURN_TYPE_NONE    = 0;
     const TURN_TYPE_1S      = 1;
@@ -399,6 +405,14 @@ class Turn
     {
         // Initialise
         return $this->slots->getSlot( self::TURN_TYPE );
+    }
+    
+    public function isYahtzee()
+    {
+        // Convert the INTs into strings
+        foreach ( $this->getDie() as $dice => $value  )
+            $dieArray[] = "$value";
+        return count(array_unique( $dieArray )) == 1;
     }
     
     public function getTurnBasedScore( $type, $weighted = false )
@@ -677,10 +691,7 @@ if ( $game->startGame() )
                 
                 // We would hold some dice here
                 $turn = $game->bestTurnBasedScore();
-                $hold = $game->autoHold( $turn , $hold );
-Core\Debug::write( "TURN [$j:$i] " .  $game->currentTurn()->turnTypeAsString($turn) ." -> " . $game->getScoreAsString() . " FOR " . $game->getTurnAsString() );
-//                var_dump($turn);
-//                var_dump($hold);
+                $hold = $game->autoHold( $turn );
             }
             // End the turn
             if ( $game->endTurn( $turn ) )
