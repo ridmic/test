@@ -54,7 +54,7 @@ class AuthJwtTokenController extends Core\Controller
                         if ( ! empty( $this->claims ) && $response->isOK() )
                         {
                             // We have some claims to check
-                            foreach (  $this->claims as $name => $value )
+                            foreach ( $this->claims as $name => $value )
                             {
                                 if ( $jwtClaim->getContextClaim($name) !== $value )
                                 {

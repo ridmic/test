@@ -43,9 +43,15 @@ class Controller extends Utils\Object
         return $this->makeResponse( ResponseCode::CODE_OK );
     }
     
+    // Helpers
     protected function L( $index, $args=[] )
     {
         return $this->view->L( $index, $args );
+    }
+    
+    protected function loadPlugin( $name )
+    {
+        $this->app->loadPlugin( $name );
     }
     
     protected function makeResponse( $code, $response = null )

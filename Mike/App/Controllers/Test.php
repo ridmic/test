@@ -1,5 +1,4 @@
-<?php
-namespace DryMile\Mike;
+<?php namespace DryMile\Mike;
 
 require_once CORE_DIR . "Controller.php";
 require_once CORE_DIR . "View.php";

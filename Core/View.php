@@ -7,10 +7,14 @@ include_once "ResponseCode.php";
 
 class View extends Utils\Object
 {
+    const ESCAPE_FULL       = 0;
+    const ESCAPE_HTML       = 1;
+    
     protected $app          = null;
     protected $useFolders   = false;
  	protected $assigns		= array();
     protected $language     = [];
+    protected $escape       = self::ESCAPE_FULL;
 
     public function __construct( App $app )
     {
@@ -19,18 +23,17 @@ class View extends Utils\Object
         $this->app = $app;
     }
 
-	public function assign( $sVarName, $sVal )
+	public function assign( $sVarName, $sVal , $escape = self::ESCAPE_FULL )
 	{
-		$sVal     = htmlentities($sVal, ENT_QUOTES, 'UTF-8');
-		$sVarName = 'v'.strtoupper($sVarName);
-		$this->assigns[$sVarName] = $sVal;
+		$sVarName = $this->escape('v'.strtoupper($sVarName));
+		$this->assigns[$sVarName] = $this->escape($sVal);
 	}
     
 	public function assignObject( $sVarName, $object )
 	{
 	    if ( is_object($object))
 	    {
-		    $sVarName = 'the'.strtoupper($sVarName);
+		    $sVarName = $this->escape('the'.strtoupper($sVarName));
 		    $this->assigns[$sVarName] = $object;
 	    }
 	}
@@ -39,7 +42,7 @@ class View extends Utils\Object
 	{
 	    if ( is_callable($call))
 	    {
-		    $sVarName = 'vf'.strtoupper($sVarName);
+		    $sVarName = $this->escape('vf'.strtoupper($sVarName));
 		    $this->assigns[$sVarName] = $call;
 	    }
 	}
@@ -99,7 +102,7 @@ class View extends Utils\Object
             $text = str_replace( $repl, $arg, $text );
             $count++;
         }
-        return $text;
+        return $this->escape($text);
     }
 
     public function loadLanguage( $name )
@@ -121,7 +124,6 @@ class View extends Utils\Object
         return false;
     }
 
-
     protected function makeResponse( $code, $contents = [] )
     {
         $response = new ResponseCode( $code );
@@ -129,5 +131,21 @@ class View extends Utils\Object
         return $response;
     }
 
-    
+    protected function escape( $str )
+    {
+        switch ( $this->escape )
+        {
+            case self::ESCAPE_HTML:
+		        $str = htmlentities( $str, ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+                break;
+                
+            case self::ESCAPE_FULL:
+            default:
+                $str = preg_replace( "/[^A-Za-z0-9_]/", "", $str );
+                break;
+        }
+        // For safety, always reset the escape level
+        $this->escape = self::ESCAPE_FULL;
+        return $str;
+    }
 }

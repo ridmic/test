@@ -220,6 +220,9 @@ class MvcApp extends App
     public function pathToView( $name, $ext='.php' )        { return $this->makePath( array( $this->appRoot(), 'Views', $name.$ext) ); }
     public function pathToController( $name, $ext='.php' )  { return $this->makePath( array( $this->appRoot(), 'Controllers', self::toClassName($name).$ext) ); }
     public function pathToModel( $name, $ext='.php' )       { return $this->makePath( array( $this->appRoot(), 'Models', $name.$ext) ); }
+    public function pathToPlugin( $name, $ext='.php' )      { return $this->makePath( array( $this->appRoot(), 'Plugins', $name.$ext) ); }
+
+ 
     public function classOfController( $name )              { return "\\DryMile\\".$this->name()."\\".self::toClassName($name).'Controller'; }
     public function loadAltControllerByName( $controller )
     {
@@ -243,6 +246,20 @@ class MvcApp extends App
         }
         return null;
     }
+    
+    public function loadPlugin( $name )
+    {
+        $file = $this->pathToPlugin( $name );
+        Debug::debug("PLUGIN (FILE): %s", $file );
+        if ( file_exists( $file ) ) 
+        {
+            Debug::debug("PLUGIN (LOADED): %s", $file );
+            require_once $file;
+            return true;
+        }
+        return false;
+    }
+
     
 }
 class AppFactory extends Utils\Object

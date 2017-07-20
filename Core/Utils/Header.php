@@ -16,6 +16,7 @@ class Header
     
         // Accept header is case insensitive, and whitespace isn’t important
         $accept = strtolower(str_replace(' ', '', Input::server('HTTP_ACCEPT')));
+        
         // divide it into parts in the place of a ","
         $accept = explode(',', $accept);
         foreach ($accept as $a) 
