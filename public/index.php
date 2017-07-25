@@ -6,6 +6,8 @@ require __DIR__ . "/../Core/Config.php";
 use DryMile\Core        as Core;
 use DryMile\Core\Utils  as Utils;
 
+include CORE_DIR . 'Utils/Cache.php';
+
 Core\Debug::level( Core\Debug::DBG_TRACE );
 Core\Debug::setLogger( new Utils\HtmlLogger(true) );
 
@@ -56,7 +58,7 @@ $myApp = Core\AppFactory::buildMvc( 'mike', false, Core\Responder::TYPE_HTML );
 // add tests for utils
 
 // TODO: Finish header and unittest
-
+/*
 $myApp->loadPlugin( 'Turn' );
 $myApp->loadPlugin( 'Game' );
 
@@ -98,3 +100,15 @@ if ( $game->startGame() )
     var_dump( $game->scoreGameAsXml() );
 }
 echo "</pre></body></html>";
+*/
+
+
+$cache = new Utils\Cache();
+
+$key = 'mike';
+$data = [ 'key', 'value' ];
+
+$cache->setCachePath( $myApp->cachePath() );
+var_dump($cache->store( $key, $data ));
+var_dump($cache->retrieve( $key ));
+$cache->remove( $key );

@@ -101,8 +101,10 @@ class App extends Utils\Object
     public function pathToLanguage( $name, $ext='.php' )    { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Language', $this->language, $name.$ext) ); }
     public function pathToPublic( $name, $ext='.php' )      { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Public',   $name.$ext) ); }
     public function pathToLogs( $name, $ext='.log' )        { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Data', 'Logs', $name.$ext) ); }
-    public function pathToCache( $name, $ext='' )           { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Data', 'Cache', $name.$ext) ); }
+    public function pathToCache( $name, $ext='' )           { return $this->makePath( array( $this->cachePath(), $name.$ext) ); }
     public function pathToCoreController($name,$ext='.php') { return $this->makePath( array( $this->rootPath, 'Core', 'Controllers', self::toClassName($name).$ext) ); }
+
+    public function cachePath()                             { return $this->makePath( array( $this->rootPath,  $this->nameAsPath(), 'Data', 'Cache') ); }
     
     public function isTesting()                             { return $this->testing; }
     public function setName( $name )                        { $this->name = $name; return $this; }
@@ -116,6 +118,7 @@ class App extends Utils\Object
     public function setLanguage( $code )                    { $this->language = $code; return $this; }
     public function language()                              { return $this->language; }
     public function session()                               { return $this->useSessions ? $this->session : die('Fatal Session Error'); }
+    public function usingSessions()                         { return $this->useSessions; }
     public function logger()                                { return $this->logger; }
     public function makePath( $bits )
     {
@@ -219,11 +222,13 @@ class MvcApp extends App
     // Helpers
     public function pathToView( $name, $ext='.php' )        { return $this->makePath( array( $this->appRoot(), 'Views', $name.$ext) ); }
     public function pathToController( $name, $ext='.php' )  { return $this->makePath( array( $this->appRoot(), 'Controllers', self::toClassName($name).$ext) ); }
-    public function pathToModel( $name, $ext='.php' )       { return $this->makePath( array( $this->appRoot(), 'Models', $name.$ext) ); }
+    public function pathToModel( $name, $ext='.php' )       { return $this->makePath( array( $this->appRoot(), 'Models', self::toClassName($name).$ext) ); }
     public function pathToPlugin( $name, $ext='.php' )      { return $this->makePath( array( $this->appRoot(), 'Plugins', $name.$ext) ); }
 
  
+    public function classOfModel( $name )                   { return "\\DryMile\\".$this->name()."\\".self::toClassName($name).'Model'; }
     public function classOfController( $name )              { return "\\DryMile\\".$this->name()."\\".self::toClassName($name).'Controller'; }
+
     public function loadAltControllerByName( $controller )
     {
         return $this->loadAltController( self::toURLName($controller) );
@@ -260,8 +265,25 @@ class MvcApp extends App
         return false;
     }
 
-    
+    public function loadModel( $model )
+    {
+        $file = $this->pathToModel( $model );
+        Debug::debug("MODEL (FILE): %s", $file );
+        if ( file_exists($file))
+        {
+            require_once $file;
+            $class      = $this->classOfModel($model);
+            Debug::debug("MODEL (CLASS): %s", "".$class );
+            if ( class_exists($class) )
+            {
+                Debug::debug("MODEL (CREATED)" );
+                return new $class( $this, self::toClassName($model) );
+            }
+        }
+        return null;
+    }
 }
+
 class AppFactory extends Utils\Object
 {
     public static function rootPath()   { return __DIR__.'/../'; }

@@ -1,5 +1,4 @@
-<?php
-namespace DryMile\Core\Controller;
+<?php namespace DryMile\Core\Controller;
 
 require_once __DIR__ ."/../Controller.php";
 

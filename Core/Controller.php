@@ -1,5 +1,4 @@
-<?php
-namespace DryMile\Core;
+<?php namespace DryMile\Core;
 
 include_once "Utils/Object.php";
 include_once "Debug.php";
@@ -41,6 +40,46 @@ class Controller extends Utils\Object
     {
         Debug::write('Hello World!');
         return $this->makeResponse( ResponseCode::CODE_OK );
+    }
+    
+    public function makeFormNonce()
+    {
+        //generate new nonce for form
+        $nonce = Utils\Secure::generateToken(32);
+        
+        // Push it into our session
+        if ( $this->app->usingSessions() )
+            $this->app->session()->set( "csrf", $nonce );
+                
+        // and return it
+        return $nonce;
+    }
+    
+    public function checkFormNonce( $name = 'nonce')
+    {
+        if ( $this->app->usingSessions() )
+        {
+            if ( Utils\Input::hasPost( $name ) )
+                return Utils\Input::post( $name ) == $this->app->session()->get( "csrf" );
+        }
+        return false;
+    }
+
+    public function checkAntiSpam( $name = 'url')
+    {
+        if ( Utils\Input::hasPost( $name ) )
+            return Utils\Input::post( $name ) == "";
+        return false;
+    }
+    
+    public function checkCaptcha( $name = 'captcha')
+    {
+        if ( $this->app->usingSessions() )
+        {
+            if ( !is_null( $this->session->get($name) ) )
+                return Utils\Input::hasPost( $name ) && Utils\Input::validInt( $name ) && Utils\Input::postInt( $name ) === (int)$this->session->get($name);
+        }
+        return false;
     }
     
     // Helpers

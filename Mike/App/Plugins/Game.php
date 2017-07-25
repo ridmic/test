@@ -1,6 +1,6 @@
 <?php namespace DryMile\Mike;
 
-require_once 'Turn.plugin.php';
+require_once 'Turn.php';
 
 class Game
 {
@@ -99,9 +99,9 @@ class Game
     }
     
     public function scoreGameAsJson()       { return json_encode( $this->scoreGame() ); }
-    public function scoreGameAsXml()        { return $this->arrayToXML( $this->scoreGame(), new SimpleXMLElement('<score/>'), 'xxx' ); }
+    public function scoreGameAsXml()        { return $this->arrayToXML( $this->scoreGame(), new \SimpleXMLElement('<score/>'), 'xxx' ); }
     
-    public function arrayToXML($array, SimpleXMLElement $xml, $child_name)
+    public function arrayToXML($array, \SimpleXMLElement $xml, $child_name)
     {
         foreach ($array as $k => $v) {
             if(is_array($v)) {
