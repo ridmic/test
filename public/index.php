@@ -97,7 +97,6 @@ if ( $game->startGame() )
     Core\Debug::write( "ENDING GAME...");
     $game->endGame();
     
-    
     var_dump( $game->scoreGame() );
     //var_dump( $game->scoreGameAsJson() );
     //var_dump( $game->scoreGameAsXml() );
