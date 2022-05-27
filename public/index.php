@@ -98,8 +98,8 @@ if ( $game->startGame() )
     $game->endGame();
     
     var_dump( $game->scoreGame() );
-    //var_dump( $game->scoreGameAsJson() );
-    //var_dump( $game->scoreGameAsXml() );
+    var_dump( $game->scoreGameAsJson() );
+    var_dump( $game->scoreGameAsXml() );
 }
 echo "</pre></body></html>";
 //*/
