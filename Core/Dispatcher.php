@@ -5,7 +5,7 @@ include_once "Utils/Object.php";
 include_once "Debug.php";
 include_once "ResponseCode.php";
 
-class Dispatcher extends Utils\Object
+class Dispatcher extends Utils\ObjectX
 {
     protected $router       = null;
     protected $originalUri  = null;

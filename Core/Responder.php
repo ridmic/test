@@ -5,7 +5,7 @@ include_once "Utils/Object.php";
 include_once "Debug.php";
 include_once "ResponseCode.php";
 
-class Responder extends Utils\Object
+class Responder extends Utils\ObjectX
 {
     const       TYPE_TEXT       = 0;
     const       TYPE_JSON       = 1;

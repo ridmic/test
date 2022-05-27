@@ -72,11 +72,14 @@ class Game
     public function scoreGame()
     {
         // Top Score
+        $turns = null;
         $scoreTop = 0;
         for ( $i = Turn::TURN_TYPE_1S ; $i <= Turn::TURN_TYPE_6S ; $i++ )
         {
             $this->currentTurn->loadTurn( $this->turns[$i] );
             $scoreTop += $this->currentTurn->getScore();
+            $turns[$this->currentTurn->turnTypeString($i)] = "[".implode( ', ', $this->currentTurn->getDie())."] = ".$this->currentTurn->getScore();
+            
         }
         // Bonus?
         $this->bonus = 0;
@@ -89,9 +92,11 @@ class Game
         {
             $this->currentTurn->loadTurn( $this->turns[$i] );
             $scoreLower += $this->currentTurn->getScore();
+            $turns[$this->currentTurn->turnTypeString($i)] = "[".implode( ', ', $this->currentTurn->getDie())."] = ".$this->currentTurn->getScore();
         }
         
-        return [ 'top'    => $scoreTop, 
+        return [ 'turns'  => $turns, 
+                 'top'    => $scoreTop, 
                  'bonus'  => $this->bonus, 
                  'lower'  => $scoreLower, 
                  'ybonus' => $this->bonusYahtzee, 

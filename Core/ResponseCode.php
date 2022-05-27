@@ -4,7 +4,7 @@ namespace DryMile\Core;
 include_once "Utils/Object.php";
 include_once "Debug.php";
 
-class ResponseCode extends Utils\Object
+class ResponseCode extends Utils\ObjectX
 {
     const       CODE_OK                     = 200;
     const       CODE_CREATED                = 201;

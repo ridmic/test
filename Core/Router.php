@@ -7,7 +7,7 @@ include_once "Debug.php";
 
 use \DryMile\Core\Utils\Input    as Input;
 
-class RouteList extends Utils\Object
+class RouteList extends Utils\ObjectX
 {
     const       REGVAL          = '/({:.+?})/';    
     protected   $patterns       = [ ':any'      => '(.*)',
@@ -166,7 +166,7 @@ class RouteList extends Utils\Object
     }
 }
 
-class Router extends Utils\Object
+class Router extends Utils\ObjectX
 {
     protected   $routes         = null;
     protected   $before         = null;

@@ -10,7 +10,7 @@ require_once CORE_DIR .'/Utils/Logger.php';
     <header></header>
     <body>
         <pre>
-<?php include CORE_DIR . '/Utils/Tests/_TestSuite.php'; ?>
+            <?php include CORE_DIR . '/Utils/Tests/_TestSuite.php'; ?>
         </pre>
     </body>
 </html>

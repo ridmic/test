@@ -58,7 +58,7 @@ $myApp = Core\AppFactory::buildMvc( 'mike', false, Core\Responder::TYPE_HTML );
 // add tests for utils
 
 // TODO: Finish header and unittest
-/*
+///*
 $myApp->loadPlugin( 'Turn' );
 $myApp->loadPlugin( 'Game' );
 
@@ -94,21 +94,25 @@ if ( $game->startGame() )
             }
         }
     }
+    Core\Debug::write( "ENDING GAME...");
     $game->endGame();
+    
+    
     var_dump( $game->scoreGame() );
-    var_dump( $game->scoreGameAsJson() );
-    var_dump( $game->scoreGameAsXml() );
+    //var_dump( $game->scoreGameAsJson() );
+    //var_dump( $game->scoreGameAsXml() );
 }
 echo "</pre></body></html>";
-*/
+//*/
 
-
+/*
 $cache = new Utils\Cache();
 
 $key = 'mike';
-$data = [ 'key', 'value' ];
+$data = [ 'key', 'value', 3 ];
 
 $cache->setCachePath( $myApp->cachePath() );
 var_dump($cache->store( $key, $data ));
 var_dump($cache->retrieve( $key ));
 $cache->remove( $key );
+*/

@@ -11,7 +11,7 @@ include_once "Debug.php";
 require_once "Router.php";
 require_once "Dispatcher.php";
 
-class App extends Utils\Object
+class App extends Utils\ObjectX
 {
     protected $domain               = 'unknown';
     protected $name                 = 'unknown';
@@ -284,7 +284,7 @@ class MvcApp extends App
     }
 }
 
-class AppFactory extends Utils\Object
+class AppFactory extends Utils\ObjectX
 {
     public static function rootPath()   { return __DIR__.'/../'; }
     

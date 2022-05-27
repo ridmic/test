@@ -5,7 +5,7 @@ include_once "Utils/Object.php";
 include_once "Debug.php";
 include_once "ResponseCode.php";
 
-class View extends Utils\Object
+class View extends Utils\ObjectX
 {
     const ESCAPE_FULL       = 0;
     const ESCAPE_HTML       = 1;

@@ -134,7 +134,7 @@ class Turn
         $value   = intval($value);
         
         // Validate
-        if ( $index >= DICE_1 && $index <= self::DICE_5 )
+        if ( $index >= self::DICE_1 && $index <= self::DICE_5 )
         {
             if ( $value >= self::DICE_VALUE_MIN && $value <= self::DICE_VALUE_MAX )
             {
@@ -196,6 +196,8 @@ class Turn
             $dieArray[] = "$value";
         $diceString = implode( '', $dieArray );    
         $arrCounts  = count_chars( $diceString, 1 );
+        // Sort the counts in descending order
+        arsort( $arrCounts );
 
         // Sort it
         $arr = str_split($diceString, 1);
@@ -246,26 +248,28 @@ class Turn
                 case self::TURN_TYPE_3X:
                     // 3 of any number
                     $score = 0;
-                    foreach ( $arrCounts as $i => $val) 
+                    $keys = array_keys( $arrCounts );
+                    $vals = array_values( $arrCounts );
+                    $val = $vals[0];
+                    $die = $keys[0] - 48;
+                    if ( $val >= 3 )
                     {
-                        if ( $val >= 3 )
-                        {
-                            $score = $weighted ? $this->score() + 100 : $this->score();
-                            break;
-                        }
+                        $score = $die * $val;
+                        $score = $weighted ? $score + 100 : $score;
                     }
                     break;
                     
                 case self::TURN_TYPE_4X:
                     // 4 of any number
                     $score = 0;
-                    foreach ( $arrCounts as $i => $val) 
+                    $keys = array_keys( $arrCounts );
+                    $vals = array_values( $arrCounts );
+                    $val = $vals[0];
+                    $die = $keys[0] - 48;
+                    if ( $val >= 4 )
                     {
-                        if ( $val >= 4 )
-                        {
-                            $score = $weighted ? $this->score() + 200 : $this->score();
-                            break;
-                        }
+                        $score = $die * $val;
+                        $score = $weighted ? $score + 200 : $score;
                     }
                     break;
                     

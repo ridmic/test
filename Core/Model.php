@@ -3,7 +3,7 @@
 include_once "Utils/Object.php";
 include_once "Debug.php";
 
-class MysqliModel extends Utils\Object
+class MysqliModel extends Utils\ObjectX
 {
     protected $app          = null;
     protected $name         = '-unknown-';

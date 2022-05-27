@@ -5,7 +5,7 @@ include_once "Debug.php";
 include_once "ResponseCode.php";
 include_once "View.php";
 
-class Controller extends Utils\Object
+class Controller extends Utils\ObjectX
 {
     protected $app          = null;
     protected $router       = null;   

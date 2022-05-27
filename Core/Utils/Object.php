@@ -1,7 +1,7 @@
 <?php
 namespace DryMile\Core\Utils;
 
-class Object
+class ObjectX
 {
     function __construct()
     {
@@ -13,7 +13,7 @@ class Object
     
     public function __toString()
     {
-      return "Object(".get_class($this).")";
+      return "ObjectX(".get_class($this).")";
     }
     
     // Converts url name (part1_part2) into a class name (Part1Part2)
